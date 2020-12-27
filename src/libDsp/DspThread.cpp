@@ -50,8 +50,8 @@ void DspThread::procNextTask()
 	const boost::posix_time::ptime start = APP_LOCAL_TIME;
 
 	//read new frm from detection result Queue
-	bool hasDetFrm = m_dcUI->readRgbFrmByDspThread( m_capFrm_h.get() );
-	if (!hasDetFrm) {
+	bool hasDspFrm = m_dcUI->readRgbFrmByDspThread( m_capFrm_h.get() );
+	if (!hasDspFrm) {
 		this->goToSleep();
 		//dumpLog("DspThread():%s, go to sleep", m_threadName.c_str());
 		return;

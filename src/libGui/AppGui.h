@@ -41,7 +41,6 @@
 
 #include "libUtil/AppEnums.h"
 #include "libCfg/Cfg.h"
-#include "libCfg/CfgLocalView.h"
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
@@ -76,21 +75,35 @@
 inline void initMyResource() { Q_INIT_RESOURCE(appGuiRc); }
 
 namespace xPlayer {
-	enum GrpBox{
+	enum AppGrpBox{
 		//----------do not chg order beg -----	
-		GRP_BOX_IMG_WIN0 = 0,
-		GRP_BOX_IMG_WIN1,
-		GRP_BOX_IMG_WIN2,
-		GRP_BOX_IMG_WIN3,
-		//----------do not chg order end -----	
-		GRP_BOX_LOGO,    //left 
-		GRP_BOX_CTRL_M,  //middle
-		GRP_BOX_CTRL_R,  //right
+		GRP_BOX_IMG = 0,
+		GRP_BOX_LOGO,    //bottom left 
+		GRP_BOX_CTRL,    //bottom right
 		GRP_BOX_CUNT,
 	};
-	static std::vector<std::string> g_grpBoxName = {"imgWin0", "imgWin1", "imgWin2", "imgWin3", "logo", "ctrlM", "ctrlR" };
+	static std::vector<std::string> g_vGrpBoxName = {"imgWin", "logo", "ctrl" };
 
-	enum ResImg {
+	enum AppPushButton {
+		//----------do not chg order beg -----	
+		PB_START_EXIT = 0,
+		PB_IMG_FOLDER,    //bottom left 
+		PB_MP3_FOLDER,    //bottom right
+		PB_MAX_DISPLAY,
+		PB_CUNT
+	};
+	static std::vector<std::string> g_vPushButtonName = { "Start", "Image Folder", "Mp3 Folder", "MaxDsp" };
+
+	enum AppLineEdit {
+		//----------do not chg order beg -----	
+		LE_IMG_FOLDER = 0,
+		LE_MP3_FOLDER, 
+		LE_CUNT
+	};
+	static std::vector<std::string> g_vLineEditName = { "ImgFolderPath", "Mp3FolderPath"};
+
+	//resource images
+	enum AppResImg {
 		RES_IMG_RED_BOX = 0,
 		RES_IMG_GRN_BOX,
 		RES_IMG_YEL_BOX,
@@ -101,14 +114,12 @@ namespace xPlayer {
 		RES_IMG_CUNT
 	};
 
-	#define NUM_OF_CAMS 4
-
 	class AppGui : public QWidget
 	{
 	public:
 		AppGui();
 		void setupUi(QMainWindow *mainWin, CfgPtr &cfg);
-		void showImg( const int camId, const QPixmap &x );
+		void showImg( const QPixmap &x );
 
 		const QRect &getGuiRect();
 
@@ -116,25 +127,12 @@ namespace xPlayer {
 
 		void setStartExitState(const char s) {
 			m_startExitState = s;
-			m_pushButtonStartExit->setText("Exit");
+			m_vPushButtons[PB_START_EXIT]->setText("Exit");
 		}
 		char getStartExitState() const {
 			return m_startExitState;
 		}
 
-		int dispIdx2PyrL( int idx ) {
-			int L = idx;
-			return L;
-		}
-		int pyrL2dispIdx(int L) {
-			int idx = L;
-			return idx;
-		}
-
-		void setDispIdx(int L) {
-			int idx = pyrL2dispIdx(L);
-			m_comboBoxDspCamImgSz->setCurrentIndex(idx);
-		}
 	private:
 		void setupMenu();
 		void setupGuiTexts();
@@ -154,33 +152,23 @@ namespace xPlayer {
 		QAction		*m_actionHelp;
 		QAction		*m_actionDecreaseSz;
 		QAction		*m_actionAbout;
+			
+		//app widgets		
+		QGroupBox	*m_vGrpBoxs[GRP_BOX_CUNT];
+		//QLabel		*m_vLabelNames[GRP_BOX_CUNT];
 
-		QGroupBox	*m_vGrpBox[GRP_BOX_CUNT];
-
-		//widgets in GRP_BOX_CTRL
-		QLabel		*m_vLabelCamId[NUM_OF_CAMS];
-		QLabel		*m_vLabelCamIp[NUM_OF_CAMS];
-		QLineEdit	*m_vLineEditCamName[NUM_OF_CAMS];
-		QCheckBox	*m_vChkBoxCamRec[NUM_OF_CAMS];
-		QCheckBox	*m_vChkBoxCamDisp[NUM_OF_CAMS];
-		QLabel* m_vConnectStatus[NUM_OF_CAMS];
-		QLabel* m_vTabTitle[5];
-
-		ImgLabel  *m_vLabelImg[NUM_OF_CAMS];
+		ImgLabel	*m_imgLabel;
 
 		QLabel	    *m_labelLogo;
-		QLabel	    *m_labelDspCamImgSz;
-		QComboBox   *m_comboBoxDspCamImgSz;
-		QPushButton *m_pushButtonStartExit;
+		QComboBox   *m_comboBoxPlaySpeed;
+		QPushButton *m_vPushButtons[PB_CUNT];
+		QLineEdit	*m_vLineEdits[LE_CUNT];
 	private:
-		CfgPtr			m_cfg;		//shared data pointer
-		CfgLocalView	m_lv;		//a hard cp from m_cfg, only used in gui thread
-
-		QPixmap         m_vQPixmap[RES_IMG_CUNT];
-
+		CfgPtr			m_cfg;				//shared data pointer
 		QRect			m_rectMainWin;
-		QRect			m_vRectGrpBox[GRP_BOX_CUNT];
 		char			m_startExitState;
+		QRect			m_vRectGrpBox[GRP_BOX_CUNT];
+		QPixmap         m_vQPixmap[RES_IMG_CUNT];
 	};
 
 } // namespace Ui

@@ -1,6 +1,6 @@
 /*
 *------------------------------------------------------------------------
-*RunXEyes.cpp
+*RunXPlayer.cpp
 *
 * This code was developed by Shunguang Wu in his spare time. No government
 * or any client funds were used.
@@ -24,250 +24,134 @@
 * Copyright(c) 2020 by Shunguang Wu, All Right Reserved
 *-------------------------------------------------------------------------
 */
-#include "RunXEyes.h"
-#include "libCap/CapThreadSyn.h"
-#include "libCap/CapSaveRtspH264.h"
-#include "libDet/DetThreadBkgChg.h"
-#include "libDet/DetThreadDeepNet.h"
+
+#include "RunXPlayer.h"
 
 using namespace std;
 using namespace xPlayer;
 
-RunXEyes::RunXEyes(CfgPtr& cfg, QWidget* parent)
+RunXPlayer::RunXPlayer(CfgPtr& cfg, QWidget* parent)
 	: RunGui(cfg, parent)
-	, m_vCapThreads()
-	, m_vDetThreads()
-	, m_vDspThreads()
-	, m_vCamIds()
-	, m_vDspFrm()
+	, m_capThread()
+	, m_dspThread()
+	, m_dspFrm()
 	, m_threadIdCnt(0)
 {
-	//init short cut to access <m_dcUI->m_dcMap[id]>
-	m_cfg->getCamIds(m_vCamIds);
-	for (auto &id : m_vCamIds) {
-		cv::Size sz = m_cfg->getDspImgSz(id);
-		DspFrm_hPtr dspFrm(new DspFrm_h(sz.width, sz.height) );
-		m_vDspFrm.push_back(dspFrm);
-	}
+	//Note: <m_dcUI> and <m_cfg> is assigned inside RunGui(cfg, parent)
+
+	//init <DspFrm_h>
+	CfgSliderShow prm = cfg->getSliderShow();
+	m_dspFrm.reset(new DspFrm_h(prm.dspImgSz_.w, prm.dspImgSz_.h) );
 
 	//gui initialized at this point
 
 	//create threads: order matters: do not chg 
-	createDisplayThreads();
-	createDetectionThreads();
-	createCaptureThreads();
+	createDspThread();
+	createCapThread();
 
 
-	int n = m_vCamIds.size();
-	if (n >= 1) {
-		QObject::connect(m_vDspThreads[0].get(), SIGNAL(sigReady2Disp()), this, SLOT(respns_dispImg0()), MY_QT_CONN);
-	}
-	if (n >= 2) {
-		QObject::connect(m_vDspThreads[1].get(), SIGNAL(sigReady2Disp()), this, SLOT(respns_dispImg1()), MY_QT_CONN);
-	}
-	if (n >= 3) {
-		QObject::connect(m_vDspThreads[2].get(), SIGNAL(sigReady2Disp()), this, SLOT(respns_dispImg2()), MY_QT_CONN);
-	}
-	if (n >= 4) {
-		QObject::connect(m_vDspThreads[3].get(), SIGNAL(sigReady2Disp()), this, SLOT(respns_dispImg3()), MY_QT_CONN);
-	}
+	QObject::connect( m_dspThread.get(), SIGNAL(sigReady2Disp()), this, SLOT(respns_dispImg()), MY_QT_CONN);
 
-	runAllThreads();
+	startDspThread();
 }
 
 
-RunXEyes::~RunXEyes()
+RunXPlayer::~RunXPlayer()
 {
 }
 
-void RunXEyes::runAllThreads()
+
+
+//create capture threads
+void RunXPlayer::createCapThread()
 {
-	startDisplayThreads();
-	startDetectionThreads();
-	startCaptureThreads();  //put capture as last in on purpose
+
+	m_capThread.reset(new CapThread(0, "CapThread"));
+	m_capThread->setCfg(m_cfg);
+	m_capThread->setDcUI(m_dcUI);
+
+	//set Dspplay thread
+	m_capThread->setDspPtr(m_dspThread.get());
+
+	m_threadIdCnt++;
+}
+
+void RunXPlayer::createDspThread()
+{
+	m_dspThread.reset(new DspThread(0, m_threadIdCnt, "DspThread") );
+	m_dspThread->setCfg(m_cfg);
+	m_dspThread->setDcUI(m_dcUI);
+
+	m_threadIdCnt++;
 }
 
 
-void RunXEyes::createCaptureThreads()
+void RunXPlayer::startCapThread()
 {
-	//create capture threads
-	m_vCapThreads.clear();
-	for (int i = 0; i < m_vCamIds.size(); ++i ) {
-		int id = m_vCamIds[i];
-		CfgSliderShow currCfg = m_cfg->getCam(id);
-		const string threadName = "CapThread4" + currCfg.cameraName_;
-		CapThreadBasePtr cap;
-		if( 0 ==currCfg.rtspUrl_.compare("none")  ){
-			cap.reset(new CapThreadSyn(id, m_threadIdCnt, threadName));
+	m_capThread->start();
+	//make sure every capture thread was initialized
+	while (1) {
+		THREAD_SLEEP(10);
+		if (m_capThread->isSleepMode()) {
+			break;
 		}
-		else{
-			cap.reset(new CapSaveRtspH264(id, m_threadIdCnt, threadName));
-		}
-		cap->setCfg(m_cfg);
-		cap->setDcUI(m_dcUI);
-		cap->setDetPtr(m_vDetThreads[i].get());
-
-		m_vCapThreads.push_back(cap);
-		m_threadIdCnt++;
 	}
+	m_capThread->wakeupToWork();
+	dumpLog("RunXPlayer::startCapThread(): ThreadId=%d, name=%s started.", m_capThread->m_threadId, m_capThread->m_threadName.c_str());
 }
 
-void RunXEyes::createDetectionThreads()
+void RunXPlayer::startDspThread()
 {
-	m_vDetThreads.clear();
-	for (int i = 0; i < m_vCamIds.size(); ++i) {
-		int id = m_vCamIds[i];
-		CfgSliderShow currCfg = m_cfg->getCam(id);
-		const string threadName = "DetThread4" + currCfg.cameraName_;
-
-		DetThreadBasePtr det(0);
-		DetectionMethod mtd = (DetectionMethod)currCfg.detMethodId_;
-		if(  mtd == DET_MTD_CHG_DETECTION ){
-			det.reset(new DetThreadBkgChg(id, m_threadIdCnt, threadName));
+	m_dspThread->start();
+	//make sure every capture thread was initialized
+	while (1) {
+		THREAD_SLEEP(10);
+		if (m_dspThread->isSleepMode()) {
+			break;
 		}
-		else{
-			det.reset(new DetThreadDeepNet(id, m_threadIdCnt, threadName));
-		}		
-		det->setCfg(m_cfg);
-		det->setDcUI(m_dcUI);
-		det->setDspPtr(m_vDspThreads[i].get());
-
-		m_vDetThreads.push_back(det);
-		m_threadIdCnt++;
 	}
-}
-
-void RunXEyes::createDisplayThreads()
-{
-	m_vDspThreads.clear();
-	for (auto &id : m_vCamIds) {
-		CfgSliderShow currCfg = m_cfg->getCam(id);
-		const string threadName = "DspThread4" + currCfg.cameraName_;
-		DspThreadPtr dsp(new DspThread(id, m_threadIdCnt, threadName));
-
-		dsp->setCfg(m_cfg);
-		dsp->setDcUI(m_dcUI);
-		m_vDspThreads.push_back(dsp);
-		m_threadIdCnt++;
-	}
+	//x->wakeupToWork();
+	dumpLog("RunXPlayer::startDspThread(): ThreadId=%d, name=%s started.", m_dspThread->m_threadId, m_dspThread->m_threadName.c_str());
 }
 
 
-void RunXEyes::startCaptureThreads()
-{
-	for (auto &x : m_vCapThreads) {
-		x->start();
-		//make sure every capture thread was initialized
-		while (1) {
-			THREAD_SLEEP(10);
-			if (x->isSleepMode()) {
-				break;
-			}
-		}
-		x->wakeupToWork();
-		dumpLog("RunXEyes::startCaptureThreads(): ThreadId=%d, name=%s started.", x->m_threadId, x->m_threadName.c_str());
-	}
-}
-
-void RunXEyes::startDetectionThreads()
-{
-	for (auto &x : m_vDetThreads) {
-		x->start();
-		//make sure every capture thread was initialized
-		while (1) {
-			THREAD_SLEEP(10);
-			if (x->isSleepMode()) {
-				break;
-			}
-		}
-		//x->wakeupToWork();
-		dumpLog("RunXEyes::startDetectionThreads(): ThreadId=%d, name=%s started.", x->m_threadId, x->m_threadName.c_str());
-	}
-}
-
-void RunXEyes::startDisplayThreads()
-{
-	for (auto &x : m_vDspThreads) {
-		x->start();
-		//make sure every capture thread was initialized
-		while (1) {
-			THREAD_SLEEP(10);
-			if (x->isSleepMode()) {
-				break;
-			}
-		}
-		//x->wakeupToWork();
-		dumpLog("RunXEyes::startDisplayThreads(): ThreadId=%d, name=%s started.", x->m_threadId, x->m_threadName.c_str());
-	}
-}
-
-
-void RunXEyes::quitAllThreads()
+void RunXPlayer::quitAllThreads()
 {
 	m_quitProgDlg->setProgress(20, "Quit capture threads ...");
-	for (auto &x : m_vCapThreads) {
-		x->forceQuit();
-		dumpLog("Thread: id=%d, name=%s quited!", x->m_threadId, x->m_threadName.c_str());
-	}
+	m_capThread->forceQuit();
+	dumpLog("Thread: id=%d, name=%s quited!", m_capThread->m_threadId, m_capThread->m_threadName.c_str());
 
-	m_quitProgDlg->setProgress(50, "Quit detetcion threads ...");
-	for (auto &x : m_vDetThreads) {
-		x->forceQuit();
-		dumpLog("Thread: id=%d, name=%s quited!", x->m_threadId, x->m_threadName.c_str());
-	}
 
 	m_quitProgDlg->setProgress(80, "Quit didsplay threads ...");
-	for (auto &x : m_vDspThreads) {
-		x->forceQuit();
-		dumpLog("Thread: id=%d, name=%s quited!", x->m_threadId, x->m_threadName.c_str());
-	}
+	m_dspThread->forceQuit();
+	dumpLog("Thread: id=%d, name=%s quited!", m_dspThread->m_threadId, m_dspThread->m_threadName.c_str());
 
 	m_quitProgDlg->setProgress(90, "all Quited ...");
 }
 
 
-void RunXEyes::on_actionExit_triggered()
+void RunXPlayer::on_actionExit_triggered()
 {
 	createQuitDlg();
 	quitAllThreads();
 	closeQuitDlg();
-	dumpLog("RunXEyes::on_actionExit_triggered(): exited!");
+	dumpLog("RunXPlayer::on_actionExit_triggered(): exited!");
 }
 
-void RunXEyes::respns_dispImg0()
+void RunXPlayer::respns_dispImg()
 {
-	dispImg(0);
-}
-
-void RunXEyes::respns_dispImg1()
-{
-	dispImg(1);
-}
-
-void RunXEyes::respns_dispImg2()
-{
-	dispImg(2);
-}
-
-void RunXEyes::respns_dispImg3()
-{
-	dispImg(3);
-}
-
-inline void RunXEyes::dispImg(const int camIdx)
-{
-	//shared data container of corresponding camera
-	int camId = m_vCamIds[camIdx];
-	Dc *pDC = m_dcUI->m_dcMap[camId].get();
-
-	//read dspImg from shared DC
-	DspFrm_h *p = m_vDspFrm[camIdx].get();
-	bool suc = pDC->m_frmInfoQ->readDspFrmByGuiThread( p );
+	bool suc = m_dcUI->readDspFrmByGuiThread(m_dspFrm.get() );
 	if (suc) {
-#if DSP_USE_QPIXMAP	
-		m_ui->showImg(camIdx, p->m_img);
-#else
-		//todo		
-#endif
+		m_ui->showImg( m_dspFrm->m_img);
 	}
+}
+
+void RunXPlayer::on_comboBoxPlaySpeed_currentIndexChanged(int idx)
+{
+	CfgGui p1 = m_cfg->getGui();
+	int dt_ms = p1.vFrmInterval[idx];
+	m_capThread->updateFrmInterval(dt_ms);
+
+	CfgSliderShow p2 = m_cfg->getSliderShow();
+
 }

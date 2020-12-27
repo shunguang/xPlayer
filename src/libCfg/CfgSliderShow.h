@@ -47,7 +47,7 @@ namespace xPlayer {
 	public:
 		ImgSize		capImgSz_;	   //capture output image size
 		ImgSize		dspImgSz_;	   //output image sz after H264 decoding regardless the original size from camera
-		VideoFps    fps_;
+		uint32_t	frameInterval_ms_;
 
 		//todo: add more
 		int 		frmQueSz_;				//que size for FrmInfo
@@ -56,9 +56,9 @@ namespace xPlayer {
 		bool		isDisp_;      
 		std::string mp4LocationAndPrefix_;   //"c:/temp/FamilyMov-"
 
-		std::string	imgRootFolder;
-		std::string	mp3RootFolder;
-
+		std::string	imgRootFolder_;
+		std::string	mp3RootFolder_;
+		uint64_t	frmNumLastTimePlayed_;
 	};
 	typedef std::shared_ptr<CfgSliderShow>		CfgSliderShowPtr;
 }

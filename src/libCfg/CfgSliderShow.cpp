@@ -33,39 +33,41 @@ CfgSliderShow::CfgSliderShow()
 	: CfgBase()
 	, capImgSz_(1920,1080)
 	, dspImgSz_(1920,1080)
-	, fps_(10, 1)
+	, frameInterval_ms_(1000)
 	, frmQueSz_(10)
 	, isRec_(true)
 	, isDisp_(true)
 	, mp4LocationAndPrefix_("./myRecFolder/tmp")
-	, imgRootFolder("c:/temp/img")
-	, mp3RootFolder("c:/temp/mp3")
-
+	, imgRootFolder_("c:/temp/img")
+	, mp3RootFolder_("c:/temp/mp3")
+	, frmNumLastTimePlayed_(0)
 {
 }
 
 void CfgSliderShow::fromPropertyTree(const boost::property_tree::ptree &pt)
 {
-#if 0
-	dspImgSz_.w 	= pt.get<int>("imgW");
-	dspImgSz_.h 	= pt.get<int>("imgH");
-	fps_.num 	= pt.get<int>("fpsNum");
-	fps_.den 	= pt.get<int>("fpsDen");
-#endif
+	capImgSz_.w = pt.get<int>("capImgW");
+	capImgSz_.h = pt.get<int>("capImgH");
+	dspImgSz_.w = pt.get<int>("dspImgW");
+	dspImgSz_.h = pt.get<int>("dspImgH");
+
+	//frameInterval_ms_ 	= pt.get<int>("frameInterval_ms");
+	imgRootFolder_ = pt.get<std::string>("imgRootFolder");
+	mp3RootFolder_ = pt.get<std::string>("mp3RootFolder");
+	frmNumLastTimePlayed_  = pt.get<uint64_t>("frmNumLastTimePlayed");
 }
 
 boost::property_tree::ptree CfgSliderShow::toPropertyTree()
 {
 	boost::property_tree::ptree pt;
-#if 0
-	pt.put("imgW", imgSz_.w);
-	pt.put("imgH", imgSz_.h);
-	pt.put("fpsNum", fps_.num);
-	pt.put("fpsDen", fps_.den);
-	pt.put("frmQueSz", frmQueSz_);
-	pt.put( "mp4LocationAndPrefix", mp4LocationAndPrefix_);
-#endif
+	pt.put("capImgW", capImgSz_.w);
+	pt.put("capImgH", capImgSz_.h);
+	pt.put("dspImgW", dspImgSz_.w);
+	pt.put("dspImgH", dspImgSz_.h);
 
+	pt.put("imgRootFolder", imgRootFolder_);
+	pt.put("mp3RootFolder", mp3RootFolder_);
+	pt.put("frmNumLastTimePlayed", frmNumLastTimePlayed_);
 	return pt;
 }
 

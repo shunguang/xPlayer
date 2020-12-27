@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <cfg>
   <slidershow>
-    <abc>11</abc>
+    <capImgW>1920</capImgW>
+    <capImgH>1080</capImgH>
+    <dspImgW>1920</dspImgW>
+    <dspImgH>1080</dspImgH>
+
+    <imgRootFolder>C:/swu-apl/Sony-Camera</imgRootFolder>
+    <mp3RootFolder>C:/temp/mp3</mp3RootFolder>
+    <frmNumLastTimePlayed>0</frmNumLastTimePlayed>
   </slidershow>
   
   <gui>
-  <todo>0</todo>
+    <minGuiWinW>720</minGuiWinW>
+    <maxGuiWinW>1920</maxGuiWinW>
+    <maxGuiWinH>1080</maxGuiWinH>
   </gui>
-
-  <disp>
-    <dispQueSz>20</dispQueSz>
-	  <dispPyrLev>2</dispPyrLev>
-  </disp>
 
   <!--dump and log -->
   <log>

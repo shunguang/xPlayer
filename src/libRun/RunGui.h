@@ -43,6 +43,8 @@
 * limitations under the License.
 *-------------------------------------------------------------------
 */
+
+//used to test class AppGui
 #ifndef __RUN_GUI_H__
 #define __RUN_GUI_H__
 
@@ -50,14 +52,13 @@
 #include "libCfg/Cfg.h"
 
 #include "libGui/QtHeaders.h"
-//#include "libGui/GuiUtil.h"
 #include "libGui/AppGui.h"
 #include "libGui/MsgBox.h"
 #include "libGui/ProgDialog.h"
 
 #include "libDc/DcUI.h"
 
-#define POPUP_MSG_WIN_TITLE "xEyes"
+#define POPUP_MSG_WIN_TITLE "xPlayer"
 #define MY_QT_CONN		Qt::UniqueConnection
 
 namespace xPlayer {
@@ -72,39 +73,33 @@ namespace xPlayer {
 
 	protected slots:
 		virtual void on_actionExit_triggered();
-		virtual void closeEvent(QCloseEvent* event);
+		virtual void on_comboBoxPlaySpeed_currentIndexChanged(int idx);
+
+		void closeEvent(QCloseEvent* event);
 		void on_actionHelp_triggered();
 		void on_actionAbout_triggered();
 		void on_actionDecreaseDispImgSz_triggered();
 
 		void on_pushButton_startExit_clicked();
-		void on_comboBoxDspCamImgSz_currentIndexChanged(int idx);
+		void on_pushButton_imgFolder_clicked();
+		void on_pushButton_mp3Folder_clicked();
+		void on_pushButton_maxDisp_clicked();
 
-		void on_checkBox_camRec0_stateChgd(int state);
-		void on_checkBox_camRec1_stateChgd(int state);
-		void on_checkBox_camRec2_stateChgd(int state);
-		void on_checkBox_camRec3_stateChgd(int state);
 
-		void on_checkBox_disp0_stateChgd(int state);
-		void on_checkBox_disp1_stateChgd(int state);
-		void on_checkBox_disp2_stateChgd(int state);
-		void on_checkBox_disp3_stateChgd(int state);
-
-		void on_lineEdit_camName0_edited(const QString &s);
-		void on_lineEdit_camName1_edited(const QString &s);
-		void on_lineEdit_camName2_edited(const QString &s);
-		void on_lineEdit_camName3_edited(const QString &s);
+		void on_lineEdit_imgFolder_edited(const QString &s);
+		void on_lineEdit_mp3Folder_edited(const QString &s);
 
 	protected:
 		void createQuitDlg();
 		void closeQuitDlg();
+		virtual void startCapThread();
 
 	protected:
 		CfgPtr	m_cfg;                   //accessed by multi-threads
 		DcUIPtr	m_dcUI;
 
-		bool		m_guiReady;
-		std::shared_ptr<AppGui> m_ui;
+		bool						m_guiReady;
+		std::shared_ptr<AppGui>		m_ui;
 
 		std::shared_ptr<ProgDialog> m_quitProgDlg;
 

@@ -41,6 +41,10 @@ namespace xPlayer {
 		virtual ~CapThread();
 		void setDspPtr( DspThread *p );
 
+		void updateFrmInterval(int dt_ms) {
+			m_frmInterval_ms = dt_ms;
+		}
+
 	protected:
 		//set <isEmitSignal> as false when doing single thread none GUI test
 		virtual void procNextTask();
@@ -50,7 +54,7 @@ namespace xPlayer {
 
 	protected:
 		uint64_t		m_frmNum;
-		int				m_frmInterval_ms;
+		std::atomic<uint32_t> m_frmInterval_ms;
 		cv::Size		m_capSz;
 
 		RgbFrm_hPtr		m_rgbFrm_h;   //output/captured frm from this camera

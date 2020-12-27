@@ -29,7 +29,7 @@
 
 #include "libRun/RunCap.h"
 #include "libRun/RunGui.h"
-//#include "libRun/RunXPlayer.h"
+#include "libRun/RunXPlayer.h"
 
 using namespace std;
 using namespace xPlayer;
@@ -66,7 +66,7 @@ int test_xPlayer(int argc, char **argv)
 	font.setPointSize(9);
 	app.setFont(font);
 
-	int testFlag = 1;
+	int testFlag = 2;
 	if (testFlag == 0) {
 		RunCap x(cfg);
 		x.start();
@@ -77,9 +77,9 @@ int test_xPlayer(int argc, char **argv)
 		appRet = app.exec();
 	}
 	else if (testFlag == 2) {
-		//RunXPlayer x(cfg);
-		//x.show();
-		//appRet = app.exec();
+		RunXPlayer x(cfg);
+		x.show();
+		appRet = app.exec();
 	}
 
 	endLogThread();

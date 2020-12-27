@@ -31,7 +31,7 @@ using namespace xPlayer;
 CapThread::CapThread( const int threadId, const std::string &threadName )
 : ThreadX	( THD_TASK_CAP, threadId, threadName )
 , m_frmNum(0)
-, m_frmInterval_ms(40)
+, m_frmInterval_ms(1000)
 , m_capSz(0,0)
 , m_rgbFrm_h(0)
 , m_dspPtr(NULL)
@@ -77,8 +77,8 @@ void CapThread::procNextTask()
 
 	//decide if need to sleep
 	uint32_t dt = timeIntervalMillisec(start);
-	if (dt < m_frmInterval_ms) {
-		THREAD_SLEEP(m_frmInterval_ms - dt);
+	if (dt < m_frmInterval_ms.load() ) {
+		THREAD_SLEEP(m_frmInterval_ms.load() - dt);
 	}
 	if (m_frmNum % m_frmFreqToLog == 0) {
 		dumpLog("CapThreadSyn::procNextTask(): %s, fn=%llu, dt=%d", m_threadName.c_str(), m_frmNum, dt);
@@ -95,7 +95,7 @@ bool CapThread::procInit()
 	m_capSz = cv::Size(cfg.capImgSz_.w, cfg.capImgSz_.h);
 
 	//init currrent camera capture params
-	m_frmInterval_ms = floor(1000.0 / cfg.fps_.getFps());
+	m_frmInterval_ms = cfg.frameInterval_ms_;
 	
 	m_rgbFrm_h.reset(new RgbFrm_h(cfg.capImgSz_.w, cfg.capImgSz_.h));
 	//dumpLog( "Rgb: (w=%d,h=%d)", m_rgbFrm_h->w_, m_rgbFrm_h->h_);
@@ -106,12 +106,13 @@ bool CapThread::procInit()
 	std::vector<std::string> vExt;
 	vExt.push_back(".JPG");
 	vExt.push_back(".PNG");
-	listDirRecursively( cfg.imgRootFolder.c_str(), vExt);
+	vExt.push_back(".BMP");
+	listDirRecursively( cfg.imgRootFolder_.c_str(), vExt);
 
 	m_nTotFrms = m_vFilenames.size();
 	m_frmNum = 0;
 	if (m_nTotFrms == 0) {
-		myExit("CapThread::procInit(): no img files in folder:", cfg.imgRootFolder.c_str());
+		myExit("CapThread::procInit(): no img files in folder:", cfg.imgRootFolder_.c_str());
 	}
 	return true;
 }
@@ -124,10 +125,16 @@ bool CapThread::loadImg( const std::string &f ) {
 	}
 
 	cv::Mat I = cv::imread(f, CV_LOAD_IMAGE_COLOR);
-	
-	cv::resize(I, m_rgbFrm_h->I_, m_capSz);
+	if (0 == I.rows || 0 == I.cols) {
+		m_rgbFrm_h->I_.setTo(cv::Scalar(255, 0, 0));
+		cv::putText(m_rgbFrm_h->I_, "Cannot load file:" + f, cv::Point(10, m_capSz.height/2), cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(255, 255, 255), 2);
+	}
+	else {
+		cv::resize(I, m_rgbFrm_h->I_, m_capSz);
+		//dumpLog("CapThread::loadImg():fn=%d, f=%s, BGR: (w=%d,h=%d)", m_frmNum, f.c_str(), m_rgbFrm_h->I_.cols, m_rgbFrm_h->I_.rows);
+	}
 
-	dumpLog("CapThread::loadImg():fn=%d, f=%s, BGR: (w=%d,h=%d)", m_frmNum, f.c_str(), m_rgbFrm_h->I_.cols, m_rgbFrm_h->I_.rows);
+	cv::putText(m_rgbFrm_h->I_, std::to_string(m_frmNum) + "/" + std::to_string(m_nTotFrms), cv::Point(10, m_capSz.height-10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(255, 255, 255), 2);
 	return true;
 }
 
@@ -140,6 +147,7 @@ void CapThread::listDirRecursively(const char* rootDir, const std::vector<std::s
 	BOOST_FOREACH(boost::filesystem::path const& i, make_pair(iter, eod)) {
 		if (is_regular_file(i)) {
 			string iExt = i.extension().string();
+			std::transform( iExt.begin(), iExt.end(), iExt.begin(), ::toupper);
 			for (const auto &ext0 : vExt) {
 				if ( 0==ext0.compare(iExt) ) {
 					m_vFilenames.push_back(i.string());

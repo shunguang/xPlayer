@@ -1,6 +1,6 @@
 /*
 *------------------------------------------------------------------------
-*RunXEyes.h
+*RunXPlayer.h
 *
 * This code was developed by Shunguang Wu in his spare time. No government
 * or any client funds were used.
@@ -43,53 +43,46 @@
 * limitations under the License.
 *-------------------------------------------------------------------
 */
-#ifndef __RUN_XEYES_H__
-#define __RUN_XEYES_H__
+#ifndef __RUN_XPLAYER_H__
+#define __RUN_XPLAYER_H__
 
-#include "libCap/CapThreadBase.h"
-#include "libDet/DetThreadBase.h"
+#include "libCap/CapThread.h"
 #include "libDsp/DspThread.h"
 
 #include "RunGui.h"
 
 namespace xPlayer {
-	class RunXEyes : public RunGui
+	class RunXPlayer : public RunGui
 	{
 		Q_OBJECT
 
 	public:
 		//all the threads share the same cfg located at only one physical address
-		RunXEyes(CfgPtr& cfg, QWidget* parent = 0);
-		virtual ~RunXEyes();
+		RunXPlayer(CfgPtr& cfg, QWidget* parent = 0);
+		virtual ~RunXPlayer();
 
 	protected slots:
 		virtual void on_actionExit_triggered();
-		void		 respns_dispImg0();  //disp img from shared data: <m_sharedDC>
-		void		 respns_dispImg1();  //disp img from shared data: <m_sharedDC>
-		void		 respns_dispImg2();  //disp img from shared data: <m_sharedDC>
-		void		 respns_dispImg3();  //disp img from shared data: <m_sharedDC>
-	protected:
-		void runAllThreads();
-		void startCaptureThreads();
-		void startDetectionThreads();
-		void startDisplayThreads();
+		virtual void on_comboBoxPlaySpeed_currentIndexChanged(int idx);
 
-		void createCaptureThreads();
-		void createDetectionThreads();
-		void createDisplayThreads();
+		void		 respns_dispImg();  //disp img from shared data: <m_sharedDC>
+
+	protected:
+		virtual void startCapThread();
+
+		void startDspThread();
+
+		void createCapThread();
+		void createDspThread();
 
 		void quitAllThreads();
-		void dispImg( const int camIdx );
 
 	protected:
-		std::vector<CapThreadBasePtr>	m_vCapThreads;	//caprture thread
-		std::vector<DetThreadBasePtr>	m_vDetThreads;	//detection threads
-		std::vector<DspThreadPtr>		m_vDspThreads;	//detection threads
-
-		std::vector<int>			m_vCamIds;             //camera IDs, cannot be changed after luanched
+		CapThreadPtr		m_capThread;	//caprture thread
+		DspThreadPtr		m_dspThread;	//detection threads
 		
-		std::vector<DspFrm_hPtr>	m_vDspFrm;
-		int				 m_threadIdCnt;
+		DspFrm_hPtr			m_dspFrm;		//local copy of dspFrm from <RunGui::m_dcUI->m_dspFrmQ>
+		int					m_threadIdCnt;
 
 	};
 }

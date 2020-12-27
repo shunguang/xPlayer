@@ -65,7 +65,7 @@ namespace xPlayer {
 		cv::Size		m_dspSz;
 
 		RgbFrm_hPtr		m_capFrm_h;   //input: from capture que
-		DspFrm_hPtr		m_dspFrm_h;   //ouput: binded original frm with detetcion results
+		DspFrm_hPtr		m_dspFrm_h;   //ouput: rendered img to be displayed
 
 		//temporal varaibles
 		cv::Mat			m_dspImg;

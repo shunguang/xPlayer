@@ -53,23 +53,15 @@ const QRect& AppGui::getGuiRect()
 
 void AppGui::resetGui()
 {
-	m_lv = m_cfg->getLocalView();
+	//CfgGui prm = m_cfg->getGui();
 	resizeGuiWin();
 	resizeLogoAndCtrlPanel();
-
-	int idx = m_comboBoxDspCamImgSz->currentIndex();
-	bool flag = true;
-	if ( idx == m_lv.vDispPyrLev_.size() - 1 ) {
-		flag = false;
-	}
-	m_actionDecreaseSz->setEnabled(flag);
 }
 
 void AppGui::setupUi(QMainWindow *mainWin, CfgPtr &cfg)
 {
 	m_mainWin = mainWin;
 	m_cfg = cfg;
-	m_lv = m_cfg->getLocalView();
 
 	//define main window 
 	if (m_mainWin->objectName().isEmpty()) {
@@ -97,21 +89,17 @@ void AppGui::setupUi(QMainWindow *mainWin, CfgPtr &cfg)
 void AppGui::setupGroupBoxs()
 {
 	for (int i = 0; i < GRP_BOX_CUNT; i++) {
-		m_vGrpBox[i] = new QGroupBox(m_centralWidget);
-		m_vGrpBox[i]->setObjectName(QString::fromStdString(g_grpBoxName[i]));
+		m_vGrpBoxs[i] = new QGroupBox(m_centralWidget);
+		m_vGrpBoxs[i]->setObjectName(QString::fromStdString(g_vGrpBoxName[i]));
 	}
 
 	QString name;
-	//set display image widgets
-	for (int i = 0; i < NUM_OF_CAMS; i++) {
-		m_vLabelImg[i] = new ImgLabel(m_vGrpBox[i]);
-		name = QStringLiteral("ImgFrmCam%1").arg(i);
-		m_vLabelImg[i]->setObjectName(name);
-		m_vLabelImg[i]->setEnabled(true);
-	}
+	m_imgLabel = new ImgLabel(m_vGrpBoxs[GRP_BOX_IMG]);
+	m_imgLabel->setObjectName(QStringLiteral("m_imgLabel"));
+	m_imgLabel->setEnabled(true);
 
 	//bottom right panel
-	m_labelLogo = new QLabel(m_vGrpBox[GRP_BOX_LOGO]);
+	m_labelLogo = new QLabel(m_vGrpBoxs[GRP_BOX_LOGO]);
 	m_labelLogo->setObjectName(QStringLiteral("m_labelLogo"));
 	m_labelLogo->setEnabled(true);
 	m_labelLogo->setCursor(QCursor(Qt::ArrowCursor));
@@ -119,125 +107,39 @@ void AppGui::setupGroupBoxs()
 	m_labelLogo->setScaledContents(true);
 	m_labelLogo->setAlignment(Qt::AlignCenter);
 
-	//bottom middle panel 
-	QGroupBox* pGrpBoxCtrl = m_vGrpBox[GRP_BOX_CTRL_M];
-	for (int i = 0; i < 5; i++) {
-		name = QStringLiteral("TableTitle%1").arg(i);
-		m_vTabTitle[i] = new QLabel(pGrpBoxCtrl);
-		m_vTabTitle[i]->setObjectName(name);
-		m_vTabTitle[i]->setGeometry(0, 0, 0, 0);
+	//pushbuttons
+	QGroupBox *pGrpBoxCtrl = m_vGrpBoxs[GRP_BOX_CTRL];
+	for (int i = 0; i < PB_CUNT; ++i) {
+		m_vPushButtons[i] = new QPushButton(pGrpBoxCtrl);
+		m_vPushButtons[i]->setObjectName( QString::fromStdString(g_vPushButtonName[i]) );
+	}
+	
+	//line edits
+	for (int i = 0; i < LE_CUNT; ++i) {
+		m_vLineEdits[i] = new QLineEdit(pGrpBoxCtrl);
+		m_vLineEdits[i]->setObjectName(QString::fromStdString(g_vLineEditName[i]));
 	}
 
-	for (int i = 0; i < NUM_OF_CAMS; i++) {
-		name = QStringLiteral("CamId%1").arg(i);
-		m_vLabelCamId[i] = new QLabel(pGrpBoxCtrl);
-		m_vLabelCamId[i]->setObjectName(name);
-		m_vLabelCamId[i]->setGeometry(0, 0, 0, 0);
-
-		name = QStringLiteral("CamIp%1").arg(i);
-		m_vLabelCamIp[i] = new QLabel(pGrpBoxCtrl);
-		m_vLabelCamIp[i]->setObjectName(name);
-		m_vLabelCamIp[i]->setGeometry(0, 0, 0, 0);
-
-		name = QStringLiteral("CamName%1").arg(i);
-		m_vLineEditCamName[i] = new QLineEdit(pGrpBoxCtrl);
-		m_vLineEditCamName[i]->setObjectName(name);
-		m_vLineEditCamName[i]->setGeometry(0, 0, 0, 0);
-
-		name = QStringLiteral("CamRec%1").arg(i); //recording
-		m_vChkBoxCamRec[i] = new QCheckBox(pGrpBoxCtrl);
-		m_vChkBoxCamRec[i]->setObjectName(name);
-		m_vChkBoxCamRec[i]->setGeometry(0, 0, 0, 0);
-
-		name = QStringLiteral("CamDisp%1").arg(i);
-		m_vChkBoxCamDisp[i] = new QCheckBox(pGrpBoxCtrl);
-		m_vChkBoxCamDisp[i]->setObjectName(name);
-		m_vChkBoxCamDisp[i]->setGeometry(0, 0, 0, 0);
-
-		name = QStringLiteral("ConnectionStatus%1").arg(i);
-		m_vConnectStatus[i] = new QLabel(pGrpBoxCtrl);
-		m_vConnectStatus[i]->setObjectName(name);
-		m_vConnectStatus[i]->setGeometry(0, 0, 0, 0);
-	}
-
-	//bottom left
-	pGrpBoxCtrl = m_vGrpBox[GRP_BOX_CTRL_R];
-	m_pushButtonStartExit = new QPushButton(pGrpBoxCtrl);
-	m_pushButtonStartExit->setObjectName(QString("pushButtonStartExit"));
-	m_labelDspCamImgSz = new QLabel(pGrpBoxCtrl);
-	m_comboBoxDspCamImgSz = new QComboBox(pGrpBoxCtrl);
+	//comb
+	m_comboBoxPlaySpeed = new QComboBox(pGrpBoxCtrl);
 }
 
 void AppGui::initSettings()
 {
-#if 0 
-	int initIdx = pyrL2dispIdx( m_lv.dispPyrLev_) ;
-	int w0 = m_lv.imgSz_L0_.w;
-	int h0 = m_lv.imgSz_L0_.h;
-	for (const auto &L : m_lv.vDispPyrLev_) {
-		QString s = QStringLiteral("%1 x %2").arg(w0 >> L).arg(h0 >> L);
-		m_comboBoxDspCamImgSz->addItem(s);
+	CfgGui prm = m_cfg->getGui();
+	CfgSliderShow pp = m_cfg->getSliderShow();
+
+	for (const auto &e : prm.vSpeadCombo ) {
+		m_comboBoxPlaySpeed->addItem(QString::fromStdString(e) );
 	}
+	m_comboBoxPlaySpeed->setCurrentIndex(1);
+	m_cfg->updateFrameInterval(prm.vFrmInterval[1]);
 
-	int id;
-	QString txt;
-	std::vector<int> vId;
-	m_cfg->getCamIds(vId);
-	int n = APP_MIN(vId.size(), NUM_OF_CAMS);
-	for (int i = 0; i < n; ++i) {
-		id = vId[i];
-		CfgSliderShow prm = m_cfg->getCam(id);
-		txt = QStringLiteral("Camera %1:").arg(prm.cameraId_);
-		m_vLabelCamId[i]->setText(txt);
+	m_labelLogo->setPixmap(m_vQPixmap[RES_IMG_LOGO].scaled(prm.logoSz.w, prm.logoSz.h, Qt::IgnoreAspectRatio));
 
-		txt = QString::fromStdString(ipConvertNum2Str(prm.getIp()));
-		m_vLabelCamIp[i]->setText(txt);
-
-		txt = QString::fromStdString(prm.cameraName_);
-		m_vLineEditCamName[i]->setText(txt);
-
-		m_vChkBoxCamRec[i]->setChecked(prm.isRec_);
-		m_vChkBoxCamDisp[i]->setChecked(prm.isDisp_);
-
-		m_vConnectStatus[i]->setPixmap(m_vQPixmap[RES_IMG_RED_BOX]);
-	}
-
-	//unavailable cameras
-	id += 1;
-	for (int i = n; i < NUM_OF_CAMS; ++i, ++id) {
-		txt = QStringLiteral("Camera %1:").arg(id);
-		m_vLabelCamId[i]->setText(txt);
-		m_vLabelCamId[i]->setEnabled(false);
-
-		txt = QString::fromStdString(ipConvertNum2Str(0));
-		m_vLabelCamIp[i]->setText(txt);
-		m_vLabelCamIp[i]->setEnabled(false);
-
-		txt = QString::fromStdString("unknown");
-		m_vLineEditCamName[i]->setText(txt);
-		m_vLineEditCamName[i]->setEnabled(false);
-
-		m_vConnectStatus[i]->setPixmap(m_vQPixmap[RES_IMG_RED_BOX]);
-		m_vChkBoxCamRec[i]->setChecked( false );
-		m_vChkBoxCamDisp[i]->setChecked( false );
-
-		m_vConnectStatus[i]->setEnabled(false);
-		m_vChkBoxCamRec[i]->setEnabled(false);
-		m_vChkBoxCamDisp[i]->setEnabled(false);
-	}
-
-	m_comboBoxDspCamImgSz->setCurrentIndex(initIdx);
-	m_labelLogo->setPixmap(m_vQPixmap[RES_IMG_LOGO].scaled(m_lv.logoSz_.w, m_lv.logoSz_.h, Qt::IgnoreAspectRatio));
-
-	m_vTabTitle[0]->setText("IP");
-	m_vTabTitle[1]->setText("Name");
-	m_vTabTitle[2]->setText("Rec");
-	m_vTabTitle[3]->setText("Disp");
-	m_vTabTitle[4]->setText("Status");
-#endif
+	m_vLineEdits[LE_IMG_FOLDER]->setText( QString::fromStdString(pp.imgRootFolder_) );
+	m_vLineEdits[LE_MP3_FOLDER]->setText(QString::fromStdString(pp.mp3RootFolder_) );
 }
-
-
 
 void AppGui::setupMenu()
 {
@@ -296,7 +198,7 @@ void AppGui::setupMenu()
 
 void AppGui::setupGuiTexts()
 {
-	m_mainWin->setWindowTitle(QApplication::translate("mainWin", "XEyes Security System (v1.0)", 0));
+	m_mainWin->setWindowTitle(QApplication::translate("mainWin", "XxPlayer (v1.0)", 0));
 	m_actionExit->setText(QApplication::translate("mainWin", "E&xit", 0));
 	m_actionAbout->setText(QApplication::translate("mainWin", "A&bout", 0));
 	m_actionHelp->setText(QApplication::translate("mainWin", "H&elp", 0));
@@ -305,73 +207,62 @@ void AppGui::setupGuiTexts()
 	m_menuFile->setTitle(QApplication::translate("mainWin", "&File", 0));
 	m_menuHelp->setTitle(QApplication::translate("mainWin", "&Help", 0));
 
-	m_pushButtonStartExit->setText(QApplication::translate("mainWin", "Start", 0));
-	m_labelDspCamImgSz->setText(QApplication::translate("mainWin", "Image Size", 0));
+	for (int i = 0; i < PB_CUNT; ++i) {
+		m_vPushButtons[i]->setText(QApplication::translate("mainWin", g_vPushButtonName[i].c_str(), 0));
+	}
 }
 
 void AppGui::resizeLogoAndCtrlPanel()
 {
-	int x=0, y=0, h=17;
+	int x=0, y=0, h=25;
 	int b = 5;
-	int w1 = 60, w2=100, w3=150, w4 = 25, w5 = 25, w6=10;
+	int w = 100;				 //button width
+
+	const int logoGrpW = m_vGrpBoxs[GRP_BOX_LOGO]->width();
+	const int logoGrpH = m_vGrpBoxs[GRP_BOX_LOGO]->height();
+	const int ctrlGrpW = m_vGrpBoxs[GRP_BOX_CTRL]->width();
+
+	const int lineEditW = ctrlGrpW - 3*w - 4*b;	//line edit width
 
 	//bottom left -- logo
-	m_labelLogo->setGeometry(x+b, y+b, m_lv.logoSz_.w, m_lv.logoSz_.h);
-
-	//bottom middle 
-	b = 5;
-	y = b; x = w1 + 2*b ; 
-	m_vTabTitle[0]->setGeometry(x, y, w2, h);
-	x += w2 + b; m_vTabTitle[1]->setGeometry(x, y, w3, h);
-	x += w3 + b; m_vTabTitle[2]->setGeometry(x, y, w4, h);
-	x += w4 + b; m_vTabTitle[3]->setGeometry(x, y, w5, h);
-	x += w5 + b; m_vTabTitle[4]->setGeometry(x, y, 30, h);
-
-	y += h + b;
-	for (int i = 0; i < m_lv.nNumOfCams_; i++){
-		x = b;
-		m_vLabelCamId[i]->setGeometry(x,y,w1,h);
-		
-		x += w1 + b;
-		m_vLabelCamIp[i]->setGeometry(x, y, w2, h);
-		
-		x += w2 + b;
-		m_vLineEditCamName[i]->setGeometry(x, y, w3, h);
-
-		x += w3 + b;
-		m_vChkBoxCamRec[i]->setGeometry(x, y, w4, h);
-
-		x += w4 + b;
-		m_vChkBoxCamDisp[i]->setGeometry(x, y, w5, h);
-
-		x += w5 + b;
-		m_vConnectStatus[i]->setGeometry(x, y, w6, h);
-
-		//------ for next line ------------
-		y += h + b;
-	}
+	m_labelLogo->setGeometry(x+b, y+b, logoGrpW-2*b, logoGrpH-2*b);
 
 	//bottom right
-	w1 = 60; w2 = 85;
-	x = b;  y = b;
-	m_labelDspCamImgSz->setGeometry(x, y, w1, h);
+	x = b; y = b;
+	m_vPushButtons[PB_IMG_FOLDER]->setGeometry(x, y, w, h);
+	x += w+b;
+	m_vLineEdits[LE_IMG_FOLDER]->setGeometry(x, y, lineEditW, h);
 	
-	x += w1 + b;
-	m_comboBoxDspCamImgSz->setGeometry(x, y, w2, h);
+	x = b;
+	y += 2*h;
+	m_vPushButtons[PB_MP3_FOLDER]->setGeometry(x, y, w, h);
+	x += w+b;
+	m_vLineEdits[LE_MP3_FOLDER]->setGeometry(x, y, lineEditW, h);
 	
-	y += 2*h + b;
-	m_pushButtonStartExit->setGeometry(b, y, w1+w2+b, 2*h);
+	//combBox
+	x = lineEditW+w+2*b;
+	y = b;
+	m_comboBoxPlaySpeed->setGeometry(x, y, w, h);
+
+	//start/exit button
+	y += h + h/4;
+	m_vPushButtons[PB_START_EXIT]->setGeometry(x, y, w, h);
+
+	//enlarg button
+	y += h + h/4;
+	m_vPushButtons[PB_MAX_DISPLAY]->setGeometry(x, y, w, h);
 }
 
 //need to update <m_lv> before calling this function
 void AppGui::resizeGuiWin()
 {
-	int menuBarH = 21;
-	ImgSize szCW = m_lv.getCentralWidgetSz();
-	ImgSize szImg = m_lv.getDispImgSz();
+	CfgGui prm = m_cfg->getGui();
+	const ImgSize szCW =  prm.maxGuiWinSz;
+	const ImgSize szImg = prm.getDispImgSz();
+
 	int b = 2;
 	int x = b, y = b;
-	int n = m_lv.nNumOfCams_;
+	int menuBarH = 21;
 
 	ImgSize szGui(szCW.w + 2 * b, szCW.h + 2 * b + menuBarH);
 	m_mainWin->setGeometry( 10, 25, szGui.w, szGui.h );
@@ -381,41 +272,24 @@ void AppGui::resizeGuiWin()
 	m_centralWidget->setGeometry(b, b, szCW.w, szCW.h);
 	m_menuBar->setGeometry(QRect(b, b, szGui.w, menuBarH));
 
-	m_vGrpBox[GRP_BOX_IMG_WIN0]->setGeometry(x, y, szImg.w, szImg.h);
-	if ( n>= 2) {
-		x = szImg.w + 2*b;
-		m_vGrpBox[GRP_BOX_IMG_WIN1]->setGeometry(x, y, szImg.w, szImg.h);
-	}
-	if ( n >= 3) {
-		x = b; y = szImg.h + 2*b;
-		m_vGrpBox[GRP_BOX_IMG_WIN2]->setGeometry(x, y, szImg.w, szImg.h);
-	}
-	if ( n >= 4) {
-		x = szImg.w + 2*b;
-		m_vGrpBox[GRP_BOX_IMG_WIN3]->setGeometry(x, y, szImg.w, szImg.h);
-	}
+	m_vGrpBoxs[GRP_BOX_IMG]->setGeometry(x, y, szImg.w, szImg.h);
 
 	b = 5;
 	x = b; 
 	y += szImg.h + b; 
-	int h = APP_MAX(m_lv.minCtrlGrpH_, m_lv.logoSz_.h+4);
-	int w = m_lv.logoSz_.w+2*b;
-	m_vGrpBox[GRP_BOX_LOGO]->setGeometry(x, y, w, h);
+	int h = APP_MAX(prm.minCtrlGrpH, prm.logoSz.h+4);
+	int w = prm.logoSz.w + 2*b;
+	m_vGrpBoxs[GRP_BOX_LOGO]->setGeometry(x, y, w, h);
 
-	x += w + b; w = m_lv.minCtrlGrpW_M;
-	m_vGrpBox[GRP_BOX_CTRL_M]->setGeometry(x, y, w, h);
+	x += w; 
+	w = szImg.w - prm.logoSz.w - 2 * b;
+	m_vGrpBoxs[GRP_BOX_CTRL]->setGeometry(x, y, w, h);
 
-	x += w + b; w = m_lv.minCtrlGrpW_R;
-	m_vGrpBox[GRP_BOX_CTRL_R]->setGeometry(x, y, w, h);
-
-	//show init image
-	for (int i = 0; i < n; i++){
-		m_vLabelImg[i]->setGeometry(0, 0, szImg.w, szImg.h);
-		m_vLabelImg[i]->setPixmap( m_vQPixmap[RES_IMG_INIT].scaled( szImg.w, szImg.h, Qt::IgnoreAspectRatio) );
-	}
+	m_imgLabel->setGeometry(0, 0, szImg.w, szImg.h);
+	m_imgLabel->setPixmap(m_vQPixmap[RES_IMG_INIT].scaled(szImg.w, szImg.h, Qt::IgnoreAspectRatio));
 }
 
-void AppGui::showImg(const int camId, const QPixmap &x)
+void AppGui::showImg( const QPixmap &x)
 {
-	m_vLabelImg[camId]->setPixmap(x);
+	m_imgLabel->setPixmap(x);
 }

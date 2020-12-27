@@ -69,22 +69,15 @@ RunGui::RunGui(CfgPtr& cfg, QWidget* parent)
 	QObject::connect(m_ui->m_actionDecreaseSz, SIGNAL(triggered()), this, SLOT(on_actionDecreaseDispImgSz_triggered()), MY_QT_CONN);
 	QObject::connect(m_ui->m_actionHelp, SIGNAL(triggered()), this, SLOT(on_actionHelp_triggered()), MY_QT_CONN);
 	
-	QObject::connect(m_ui->m_pushButtonStartExit, SIGNAL(clicked()), this, SLOT(on_pushButton_startExit_clicked()), MY_QT_CONN);
-	QObject::connect(m_ui->m_comboBoxDspCamImgSz, SIGNAL(currentIndexChanged(int)), this, SLOT(on_comboBoxDspCamImgSz_currentIndexChanged(int)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vLineEditCamName[0], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_camName0_edited(const QString &)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vLineEditCamName[1], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_camName1_edited(const QString &)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vLineEditCamName[2], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_camName2_edited(const QString &)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vLineEditCamName[3], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_camName3_edited(const QString &)), MY_QT_CONN);
+	QObject::connect(m_ui->m_vPushButtons[PB_START_EXIT], SIGNAL(clicked()), this, SLOT(on_pushButton_startExit_clicked()), MY_QT_CONN);
+	QObject::connect(m_ui->m_vPushButtons[PB_IMG_FOLDER], SIGNAL(clicked()), this, SLOT(on_pushButton_imgFolder_clicked()), MY_QT_CONN);
+	QObject::connect(m_ui->m_vPushButtons[PB_MP3_FOLDER], SIGNAL(clicked()), this, SLOT(on_pushButton_mp3Folder_clicked()), MY_QT_CONN);
+	QObject::connect(m_ui->m_vPushButtons[PB_MAX_DISPLAY], SIGNAL(clicked()), this, SLOT(on_pushButton_maxDisp_clicked()), MY_QT_CONN);
 
-	QObject::connect(m_ui->m_vChkBoxCamRec[0], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_camRec0_stateChgd(const int)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vChkBoxCamRec[1], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_camRec1_stateChgd(const int)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vChkBoxCamRec[2], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_camRec2_stateChgd(const int)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vChkBoxCamRec[3], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_camRec3_stateChgd(const int)), MY_QT_CONN);
+	QObject::connect(m_ui->m_vLineEdits[LE_IMG_FOLDER], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_imgFolder_edited(const QString &)), MY_QT_CONN);
+	QObject::connect(m_ui->m_vLineEdits[LE_MP3_FOLDER], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_mp3Folder_edited(const QString &)), MY_QT_CONN);
 
-	QObject::connect(m_ui->m_vChkBoxCamDisp[0], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_disp0_stateChgd(const int)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vChkBoxCamDisp[1], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_disp1_stateChgd(const int)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vChkBoxCamDisp[2], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_disp2_stateChgd(const int)), MY_QT_CONN);
-	QObject::connect(m_ui->m_vChkBoxCamDisp[3], SIGNAL(stateChanged(int)), this, SLOT(on_checkBox_disp3_stateChgd(const int)), MY_QT_CONN);
+	QObject::connect(m_ui->m_comboBoxPlaySpeed, SIGNAL(currentIndexChanged(int)), this, SLOT(on_comboBoxPlaySpeed_currentIndexChanged(int)), MY_QT_CONN);
 
 
 	THREAD_SLEEP(100);
@@ -118,7 +111,7 @@ void RunGui::on_actionHelp_triggered()
 }
 void RunGui::on_actionAbout_triggered()
 {
-	QMessageBox::information(this, POPUP_MSG_WIN_TITLE, "          Auto Clip Cut\n          Shunguang Wu 2018.         ");
+	QMessageBox::information(this, POPUP_MSG_WIN_TITLE, " xPlayer\n          Shunguang Wu 2020.         ");
 }
 
 
@@ -162,89 +155,69 @@ void RunGui::on_actionExit_triggered()
 	closeQuitDlg();
 }
 
+void RunGui::on_actionDecreaseDispImgSz_triggered()
+{
+}
+
+//Control box buttons
+void RunGui::on_comboBoxPlaySpeed_currentIndexChanged(int idx)
+{
+}
+
+void RunGui::on_lineEdit_imgFolder_edited(const QString &s)
+{
+	m_cfg->updateImgRoodFolder( s.toStdString() );
+}
+
+void RunGui::on_lineEdit_mp3Folder_edited(const QString &s)
+{
+	m_cfg->updateMp3RoodFolder(s.toStdString());
+}
+
+void RunGui::on_pushButton_imgFolder_clicked()
+{
+	CfgSliderShow prm = m_cfg->getSliderShow();
+
+	QString initFolder = QString::fromStdString( prm.imgRootFolder_ );
+	QString dir = QFileDialog::getExistingDirectory(this, tr("Open Image Folder"), initFolder,
+		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+	m_ui->m_vLineEdits[LE_IMG_FOLDER]->setText(dir);
+
+	on_lineEdit_imgFolder_edited(dir);
+}
+
+void RunGui::on_pushButton_mp3Folder_clicked()
+{
+	CfgSliderShow prm = m_cfg->getSliderShow();
+
+	QString initFolder = QString::fromStdString(prm.mp3RootFolder_);
+	QString dir = QFileDialog::getExistingDirectory(this, tr("Open Mp3 Folder"), initFolder,
+		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+	m_ui->m_vLineEdits[LE_MP3_FOLDER]->setText(dir);
+
+	on_lineEdit_mp3Folder_edited(dir);
+}
+
+void RunGui::on_pushButton_maxDisp_clicked()
+{
+	//	m_cfg->updateCamName(3, s.toStdString());
+}
+
 void RunGui::on_pushButton_startExit_clicked()
 {
-	if ( 'S' == m_ui->getStartExitState()) {
+	if ('S' == m_ui->getStartExitState()) {
 		m_ui->setStartExitState('E');
+		startCapThread();
 	}
 	else {
 		on_actionExit_triggered();
 	}
 }
 
-void RunGui::on_comboBoxDspCamImgSz_currentIndexChanged(int idx)
+//this viritual function is implemented in RunXPlayer class
+void RunGui::startCapThread()
 {
-	int newL = m_ui->dispIdx2PyrL(idx);
-//	m_cfg->updateDispImgPryLevel(newL);
-	m_ui->resetGui();
-}
-
-void RunGui::on_actionDecreaseDispImgSz_triggered()
-{
-	int L = 0; // m_cfg->increaseDispImgPyrL();
-
-	m_ui->setDispIdx(L);
-	m_ui->resetGui();
-}
-
-void RunGui::on_checkBox_camRec0_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateRecFlag(0, chked);
-}
-void RunGui::on_checkBox_camRec1_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateRecFlag(1, chked);
-}
-void RunGui::on_checkBox_camRec2_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateRecFlag(2, chked);
-}
-void RunGui::on_checkBox_camRec3_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateRecFlag(3, chked);
-}
-
-void RunGui::on_checkBox_disp0_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateDispFlag(0, chked);
-}
-void RunGui::on_checkBox_disp1_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateDispFlag(1, chked);
-}
-void RunGui::on_checkBox_disp2_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateDispFlag(2, chked);
-}
-void RunGui::on_checkBox_disp3_stateChgd(int state)
-{
-	bool  chked = (state == Qt::Checked);
-//	m_cfg->updateDispFlag(3, chked);
-}
-
-void RunGui::on_lineEdit_camName0_edited(const QString &s)
-{
-//	m_cfg->updateCamName(0, s.toStdString() );
-}
-
-void RunGui::on_lineEdit_camName1_edited(const QString &s)
-{
-//	m_cfg->updateCamName(1, s.toStdString());
-}
-
-void RunGui::on_lineEdit_camName2_edited(const QString &s)
-{
-//	m_cfg->updateCamName(2, s.toStdString());
-}
-
-void RunGui::on_lineEdit_camName3_edited(const QString &s)
-{
-//	m_cfg->updateCamName(3, s.toStdString());
+	return;
 }

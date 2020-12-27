@@ -1,6 +1,6 @@
 /*
 *------------------------------------------------------------------------
-*CfgLocalView.h
+*CfgGui.h
 *
 * This code was developed by Shunguang Wu in his spare time. No government
 * or any client funds were used.
@@ -25,45 +25,39 @@
 *-------------------------------------------------------------------------
 */
 //config for display
-#ifndef __CFG_LOCAL_VIEW_H__
-#define __CFG_LOCAL_VIEW_H__
+#ifndef __CFG_GUI_H__
+#define __CFG_GUI_H__
 
 #include "CfgBase.h"
 namespace xPlayer {
-	class  CFG_EXPORT CfgLocalView : public CfgBase {
+	class  CFG_EXPORT CfgGui : public CfgBase {
 	public:
-		CfgLocalView();
-		CfgLocalView( const CfgLocalView &x ) = default;
-		CfgLocalView& operator = (const CfgLocalView &x);
-		virtual ~CfgLocalView()= default;
+		CfgGui();
+		CfgGui( const CfgGui &x ) = default;
+		CfgGui& operator = (const CfgGui &x) = default;
+		virtual ~CfgGui()= default;
 
 		virtual boost::property_tree::ptree toPropertyTree();
 		virtual void fromPropertyTree(const boost::property_tree::ptree &pt);
 		virtual std::string toString();
-		
-		ImgSize getDispImgSz() const {
-			assert(dispPyrLev_ >= 0 && dispPyrLev_ <= 3);
-			return imgSz_L0_.getSize(dispPyrLev_);
+
+		ImgSize getDispImgSz() {
+			int w = maxGuiWinSz.w;
+			int h = maxGuiWinSz.h - logoSz.h;
+			return ImgSize(w, h);
 		}
-		ImgSize getCentralWidgetSz() const;
+
 	public:
-		const int	minGuiWinW_;     //minimum gui window width 
-		const int	minCtrlGrpH_;  //minimum gui window width 
-		const int	minCtrlGrpW_M;      //w of middle control grp
-		const int	minCtrlGrpW_R;      //r of right control  grp
+		int			minGuiWinW;     //minimum gui window width 
+		ImgSize		maxGuiWinSz;    //maximu whole size of the gui windows
+		ImgSize     logoSz;         //
 
-		ImgSize     logoSz_;
-
-		ImgSize		maxGuiWinSz_;     //maximu whole size of the gui windows
-
-		int 		dispQueSz_;      //disp frm que size
-		int 		dispPyrLev_;     //disp pyramid level		
-		int 		maxPyrLev_;      //disp pyramid level		
-		int			nNumOfCams_;
-
-		ImgSize			 imgSz_L0_;	         //disp single camera image sz
-		std::vector<int> vDispPyrLev_ = {0,1,2,3};
+		std::vector<std::string> vSpeadCombo;
+		std::vector<uint32_t>	 vFrmInterval;
+		
+		int	minCtrlGrpH;	 //ctrl group min height
+		int	minCtrlGrpW;	 //ctrl group min width
 	};
-	typedef std::shared_ptr<CfgLocalView>		CfgLocalViewPtr;
+	typedef std::shared_ptr<CfgGui>		CfgGuiPtr;
 }
 #endif

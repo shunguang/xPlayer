@@ -29,7 +29,7 @@
 
 #include "CfgLog.h"
 #include "CfgSliderShow.h"
-#include "CfgLocalView.h"
+#include "CfgGui.h"
 #include "CfgDefs.h"
 namespace xPlayer {
 	class CFG_EXPORT Cfg {
@@ -40,11 +40,25 @@ namespace xPlayer {
 		void writeToFile(const char *fname);
 		std::string toString();
 
-		CfgLog getLog();
-		CfgSliderShow getSliderShow();
-		CfgLocalView getLocalView(){
-			return *(m_lv.get());
+		CfgLog			getLog();
+		CfgSliderShow	getSliderShow();
+		CfgGui			getGui();
+
+		void updateImgRoodFolder(const std::string &newFolder) {
+			boost::mutex::scoped_lock lock(m_mutex);
+			m_sliderShow->imgRootFolder_ = newFolder;
 		}
+
+		void updateMp3RoodFolder(const std::string &newFolder) {
+			boost::mutex::scoped_lock lock(m_mutex);
+			m_sliderShow->mp3RootFolder_ = newFolder;
+		}
+
+		void updateFrameInterval( const int dt_ms) {
+			boost::mutex::scoped_lock lock(m_mutex);
+			m_sliderShow->frameInterval_ms_ = dt_ms;
+		}
+
 	private:
 		boost::property_tree::ptree toPropertyTree();
 		void fromPropertyTree(const boost::property_tree::ptree &pt) ;
@@ -52,7 +66,7 @@ namespace xPlayer {
 	protected:
 		CfgSliderShowPtr			m_sliderShow;   //slider Show
 		CfgLogPtr					m_log;   		//log
-		CfgLocalViewPtr				m_lv;
+		CfgGuiPtr					m_gui;
 		boost::mutex				m_mutex;
 	};
 

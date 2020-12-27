@@ -31,6 +31,8 @@ using namespace xPlayer;
 Cfg::Cfg()
 	: m_sliderShow(new CfgSliderShow())
 	, m_log(new CfgLog())
+	, m_gui(new CfgGui())
+	, m_mutex()
 {
 }
 
@@ -63,6 +65,7 @@ void Cfg::fromPropertyTree(const boost::property_tree::ptree &pt0)
 {
 	m_sliderShow->fromPropertyTree(pt0.get_child("slidershow"));
 	m_log->fromPropertyTree(pt0.get_child("log"));
+	m_gui->fromPropertyTree(pt0.get_child("gui"));
 }
 
 
@@ -70,9 +73,12 @@ boost::property_tree::ptree Cfg::toPropertyTree()
 {
 	boost::property_tree::ptree ptLog = m_log->toPropertyTree();
 	boost::property_tree::ptree ptSliderShow = m_sliderShow->toPropertyTree();
+	boost::property_tree::ptree ptGui = m_gui->toPropertyTree();
+
 	boost::property_tree::ptree pt;
 	pt.add_child("cfg.slidershow", ptSliderShow);
 	pt.add_child("cfg.log", ptLog);
+	pt.add_child("cfg.gui", ptGui);
 
 	return pt;
 }
@@ -94,6 +100,16 @@ CfgSliderShow Cfg::getSliderShow()
 	{
 		boost::mutex::scoped_lock lock(m_mutex);
 		ret = *(m_sliderShow.get());
+	}
+	return ret;
+}
+
+CfgGui Cfg::getGui()
+{
+	CfgGui ret;
+	{
+		boost::mutex::scoped_lock lock(m_mutex);
+		ret = *(m_gui.get());
 	}
 	return ret;
 }
