@@ -66,7 +66,7 @@ int test_xPlayer(int argc, char **argv)
 	font.setPointSize(9);
 	app.setFont(font);
 
-	int testFlag = 1;
+	int testFlag = 2;
 	if (testFlag == 0) {
 		RunCap x(cfg);
 		x.start();
