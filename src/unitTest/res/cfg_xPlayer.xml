@@ -6,7 +6,7 @@
     <dspImgW>1920</dspImgW>
     <dspImgH>1080</dspImgH>
 
-    <imgRootFolder>C:/swu-apl/Sony-Camera</imgRootFolder>
+    <imgRootFolder>C:/temp</imgRootFolder>
     <mp3RootFolder>C:/temp/mp3</mp3RootFolder>
     <frmNumLastTimePlayed>0</frmNumLastTimePlayed>
   </slidershow>

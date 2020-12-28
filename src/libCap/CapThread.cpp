@@ -125,12 +125,17 @@ bool CapThread::loadImg( const std::string &f ) {
 	}
 
 	cv::Mat I = cv::imread(f, CV_LOAD_IMAGE_COLOR);
+	
+	//set target bkg as blue
+	m_rgbFrm_h->I_.setTo(cv::Scalar(255, 0, 0));
+
 	if (0 == I.rows || 0 == I.cols) {
-		m_rgbFrm_h->I_.setTo(cv::Scalar(255, 0, 0));
 		cv::putText(m_rgbFrm_h->I_, "Cannot load file:" + f, cv::Point(10, m_capSz.height/2), cv::FONT_HERSHEY_DUPLEX, 2, cv::Scalar(255, 255, 255), 2);
 	}
 	else {
-		cv::resize(I, m_rgbFrm_h->I_, m_capSz);
+		//resize keep the ratio
+		resizeKeepAspectRatio(m_rgbFrm_h->I_, I, cv::Scalar(250, 250, 250));
+
 		//dumpLog("CapThread::loadImg():fn=%d, f=%s, BGR: (w=%d,h=%d)", m_frmNum, f.c_str(), m_rgbFrm_h->I_.cols, m_rgbFrm_h->I_.rows);
 	}
 
@@ -155,5 +160,40 @@ void CapThread::listDirRecursively(const char* rootDir, const std::vector<std::s
 				}
 			}
 		}
+	}
+}
+
+void CapThread::resizeKeepAspectRatio(cv::Mat &dst, const cv::Mat &src, const cv::Scalar &bgcolor )
+{
+	cv::Size dstSize(dst.cols, dst.rows);
+	float h1 = dstSize.width * (src.rows / (float)src.cols);
+	float w2 = dstSize.height * (src.cols / (float)src.rows);
+	bool extraCpyFlag = false;
+	cv::Size  tmpSz(dstSize);
+
+	if (h1 <= dstSize.height) {
+		if (fabs(h1 - dstSize.height) / (float)dstSize.height > 0.1) {
+			tmpSz.height = h1;
+			extraCpyFlag = true;
+		}
+	}
+	else {
+		if (fabs(w2 - dstSize.width) / (float)dstSize.width > 0.1) {
+			tmpSz.width = w2;
+			extraCpyFlag = true;
+		}
+	}
+
+	if (extraCpyFlag) {
+		cv::Mat T;
+		cv::resize(src, T,  tmpSz );
+		int top = (dstSize.height - T.rows) / 2;
+		int down = (dstSize.height - T.rows + 1) / 2;
+		int left = (dstSize.width - T.cols) / 2;
+		int right = (dstSize.width - T.cols + 1) / 2;
+		cv::copyMakeBorder(T, dst, top, down, left, right, cv::BORDER_CONSTANT, bgcolor);
+	}
+	else {
+		cv::resize(src, dst, cv::Size(dstSize.width, dstSize.height));
 	}
 }
