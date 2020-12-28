@@ -41,22 +41,41 @@ namespace xPlayer {
 		virtual void fromPropertyTree(const boost::property_tree::ptree &pt);
 		virtual std::string toString();
 
-		ImgSize getDispImgSz() {
+
+		ImgSize getMaxDispImgSz() const {
 			int w = maxGuiWinSz.w;
-			int h = maxGuiWinSz.h - logoSz.h;
+			int h = maxGuiWinSz.h;
 			return ImgSize(w, h);
 		}
 
+		ImgSize getMaxCtrlGrpSz() const {
+			ImgSize ret(maxGuiWinSz.w, 0 /*getCtrlGrpH()*/);
+			return ret;
+		}
+
+		ImgSize getMinDispImgSz() const {
+			int w = minGuiWinSz.w;
+			int h = minGuiWinSz.h - getCtrlGrpH();
+			return ImgSize(w, h);
+		}
+
+		ImgSize getMinCtrlGrpSz() const {
+			ImgSize ret( minGuiWinSz.w, getCtrlGrpH() );
+			return ret;
+		}
+
+	
+		int getCtrlGrpH() const {
+			return std::max<int>(logoSz.h, 85);
+		}
 	public:
-		int			minGuiWinW;     //minimum gui window width 
+		ImgSize		minGuiWinSz;     //minimum gui window Height 
 		ImgSize		maxGuiWinSz;    //maximu whole size of the gui windows
 		ImgSize     logoSz;         //
+		int			menuBarH;
 
 		std::vector<std::string> vSpeadCombo;
 		std::vector<uint32_t>	 vFrmInterval;
-		
-		int	minCtrlGrpH;	 //ctrl group min height
-		int	minCtrlGrpW;	 //ctrl group min width
 	};
 	typedef std::shared_ptr<CfgGui>		CfgGuiPtr;
 }

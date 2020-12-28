@@ -27,7 +27,7 @@
     <ClCompile Include="..\..\libCfg\CfgSliderShow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libCfg\CfgLocalView.cpp">
+    <ClCompile Include="..\..\libCfg\CfgGui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,7 +47,7 @@
     <ClInclude Include="..\..\libCfg\CfgSliderShow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libCfg\CfgLocalView.h">
+    <ClInclude Include="..\..\libCfg\CfgGui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

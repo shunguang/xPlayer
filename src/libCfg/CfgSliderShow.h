@@ -45,20 +45,19 @@ namespace xPlayer {
 		virtual std::string toString();
 
 	public:
-		ImgSize		capImgSz_;	   //capture output image size
-		ImgSize		dspImgSz_;	   //output image sz after H264 decoding regardless the original size from camera
-		uint32_t	frameInterval_ms_;
+		ImgSize		capImgSz;	   //capture output image size
+		ImgSize		dspImgSz;	   //output image sz after H264 decoding regardless the original size from camera
+		uint32_t	frameInterval_ms;
 
 		//todo: add more
-		int 		frmQueSz_;				//que size for FrmInfo
+		int 		frmQueSz;				//que size for FrmInfo
 
-		bool		isRec_;
-		bool		isDisp_;      
-		std::string mp4LocationAndPrefix_;   //"c:/temp/FamilyMov-"
+		bool		isRec;
+		std::string mp4LocationAndPrefix;   //"c:/temp/FamilyMov-"
 
-		std::string	imgRootFolder_;
-		std::string	mp3RootFolder_;
-		uint64_t	frmNumLastTimePlayed_;
+		std::string	imgRootFolder;
+		std::string	mp3RootFolder;
+		uint64_t	frmNumLastTimePlayed;
 	};
 	typedef std::shared_ptr<CfgSliderShow>		CfgSliderShowPtr;
 }

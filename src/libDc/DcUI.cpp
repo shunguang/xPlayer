@@ -40,6 +40,6 @@ void DcUI::initSharedDc()
 {
 	CfgSliderShow  cfg = m_cfg->getSliderShow();
 	
-	m_capFrmQ.reset(new RgbCircularQ_h(cfg.capImgSz_.w, cfg.capImgSz_.h, cfg.frmQueSz_, 0, "CapFrmQ"));
-	m_dspFrmQ.reset(new DspCircularQ_h(cfg.dspImgSz_.w, cfg.dspImgSz_.h, cfg.frmQueSz_, 0, "DspFrmQ"));
+	m_capFrmQ.reset(new RgbCircularQ_h(cfg.capImgSz.w, cfg.capImgSz.h, cfg.frmQueSz, 0, "CapFrmQ"));
+	m_dspFrmQ.reset(new DspCircularQ_h(cfg.dspImgSz.w, cfg.dspImgSz.h, cfg.frmQueSz, 0, "DspFrmQ"));
 }

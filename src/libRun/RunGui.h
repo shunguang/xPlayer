@@ -78,12 +78,12 @@ namespace xPlayer {
 		void closeEvent(QCloseEvent* event);
 		void on_actionHelp_triggered();
 		void on_actionAbout_triggered();
-		void on_actionDecreaseDispImgSz_triggered();
+		void on_actionMinImgSz_triggered();
+		void on_actionMaxImgSz_triggered();
 
 		void on_pushButton_startExit_clicked();
 		void on_pushButton_imgFolder_clicked();
 		void on_pushButton_mp3Folder_clicked();
-		void on_pushButton_maxDisp_clicked();
 
 
 		void on_lineEdit_imgFolder_edited(const QString &s);

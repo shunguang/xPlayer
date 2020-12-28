@@ -46,17 +46,22 @@ namespace xPlayer {
 
 		void updateImgRoodFolder(const std::string &newFolder) {
 			boost::mutex::scoped_lock lock(m_mutex);
-			m_sliderShow->imgRootFolder_ = newFolder;
+			m_sliderShow->imgRootFolder = newFolder;
 		}
 
 		void updateMp3RoodFolder(const std::string &newFolder) {
 			boost::mutex::scoped_lock lock(m_mutex);
-			m_sliderShow->mp3RootFolder_ = newFolder;
+			m_sliderShow->mp3RootFolder = newFolder;
 		}
 
 		void updateFrameInterval( const int dt_ms) {
 			boost::mutex::scoped_lock lock(m_mutex);
-			m_sliderShow->frameInterval_ms_ = dt_ms;
+			m_sliderShow->frameInterval_ms = dt_ms;
+		}
+
+		void updateLastTimePlayedFrmNum(const uint64_t fn) {
+			boost::mutex::scoped_lock lock(m_mutex);
+			m_sliderShow->frmNumLastTimePlayed = fn;
 		}
 
 	private:

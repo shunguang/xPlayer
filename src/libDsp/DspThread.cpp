@@ -90,10 +90,10 @@ bool DspThread::procInit()
 {
 	CfgSliderShow cfg = m_cfg->getSliderShow();
 	
-	m_capSz = cv::Size(cfg.capImgSz_.w, cfg.capImgSz_.h);
+	m_capSz = cv::Size(cfg.capImgSz.w, cfg.capImgSz.h);
 	m_capFrm_h.reset(new RgbFrm_h(m_capSz.width, m_capSz.height));
 
-	m_dspSz = cv::Size(cfg.dspImgSz_.w, cfg.dspImgSz_.h);
+	m_dspSz = cv::Size(cfg.dspImgSz.w, cfg.dspImgSz.h);
 	m_dspFrm_h.reset(new DspFrm_h(m_dspSz.width, m_dspSz.height));
 	
 	m_dspImg.create(m_dspSz, 0);

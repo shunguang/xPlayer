@@ -31,35 +31,36 @@ using namespace xPlayer;
 
 CfgGui::CfgGui()
 : CfgBase()
-, minGuiWinW  (720)
+, minGuiWinSz(720, 404)
 , maxGuiWinSz(1920, 1080)
-, logoSz(100, 100)
+, logoSz(60, 60)
+, menuBarH(21)
 , vSpeadCombo {"5 sec/frame", "2 sec/fram", "1 sec/frame", "1 sec/5frames" }
 , vFrmInterval{5000, 2000, 1000, 200}
-, minCtrlGrpH (logoSz.h)
-, minCtrlGrpW (minGuiWinW- logoSz.w)
 {
 }
 
 
 void CfgGui::fromPropertyTree(const boost::property_tree::ptree &pt)
 {
-	minGuiWinW		= pt.get<int>("minGuiWinW");
+	minGuiWinSz.w = pt.get<int>("minGuiWinW");
+	minGuiWinSz.h = pt.get<int>("minGuiWinH");
 	maxGuiWinSz.w = pt.get<int>("maxGuiWinW");
 	maxGuiWinSz.h = pt.get<int>("maxGuiWinH");
+	logoSz.w = pt.get<int>("logoSzW");
+	logoSz.h = pt.get<int>("logoSzH");
 }
 
 boost::property_tree::ptree CfgGui::toPropertyTree() 
 {
 	boost::property_tree::ptree pt;
 
-	pt.put("minGuiWinW",	minGuiWinW);
-	pt.put("maxGuiWinSzW", maxGuiWinSz.w);
-	pt.put("maxGuiWinSzH", maxGuiWinSz.h);
+	pt.put("minGuiWinW", minGuiWinSz.w);
+	pt.put("minGuiWinH", minGuiWinSz.h);
+	pt.put("maxGuiWinW", maxGuiWinSz.w);
+	pt.put("maxGuiWinH", maxGuiWinSz.h);
 	pt.put("logoSzW",		logoSz.w);
 	pt.put("logoSzH",		logoSz.h);
-	pt.put("minCtrlGrpH", minCtrlGrpH);
-	pt.put("minCtrlGrpW", minCtrlGrpW);
 	return pt;
 }
 

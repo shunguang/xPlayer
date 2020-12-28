@@ -32,11 +32,13 @@ using namespace xPlayer;
 AppGui::AppGui()
 	: m_cfg(0)
 	, m_startExitState('S')
+	, m_guiState(APP_GUI_MIN)
 {
 	//defined in appGuiRc.qrc
 	//Q_INIT_RESOURCE(appGuiRc);
 	initMyResource();  //this way solve the name space issue
-	//and pre gnerated by coustom-buid tools
+
+	//some of them are not used, but would like to keep for future extentions
 	m_vQPixmap[RES_IMG_RED_BOX]	= QPixmap(QString::fromUtf8(":/Resource/red_box.png"));
 	m_vQPixmap[RES_IMG_GRN_BOX]	= QPixmap(QString::fromUtf8(":/Resource/green_box.png"));
 	m_vQPixmap[RES_IMG_YEL_BOX] = QPixmap(QString::fromUtf8(":/Resource/yellow_box.png"));
@@ -46,16 +48,11 @@ AppGui::AppGui()
 	m_vQPixmap[RES_IMG_DEFAULT] = QPixmap(QString::fromUtf8(":/Resource/defaultImg.jpg"));
 }
 
-const QRect& AppGui::getGuiRect()
-{
-	return m_rectMainWin;
-}
-
 void AppGui::resetGui()
 {
 	//CfgGui prm = m_cfg->getGui();
-	resizeGuiWin();
-	resizeLogoAndCtrlPanel();
+	resizeGuiWin( m_guiState );
+	resizeLogoAndCtrlPanel( m_guiState );
 }
 
 void AppGui::setupUi(QMainWindow *mainWin, CfgPtr &cfg)
@@ -79,10 +76,11 @@ void AppGui::setupUi(QMainWindow *mainWin, CfgPtr &cfg)
 	setupGroupBoxs();
 	setupGuiTexts();
 
-	//after setup
-	resizeGuiWin();
-	resizeLogoAndCtrlPanel();
 	initSettings();
+
+	//after setup
+	setGuiState(APP_GUI_MIN);
+	resetGui();
 	QMetaObject::connectSlotsByName(mainWin);
 }
 
@@ -99,7 +97,7 @@ void AppGui::setupGroupBoxs()
 	m_imgLabel->setEnabled(true);
 
 	//bottom right panel
-	m_labelLogo = new QLabel(m_vGrpBoxs[GRP_BOX_LOGO]);
+	m_labelLogo = new QLabel(m_vGrpBoxs[GRP_BOX_CTRL]);
 	m_labelLogo->setObjectName(QStringLiteral("m_labelLogo"));
 	m_labelLogo->setEnabled(true);
 	m_labelLogo->setCursor(QCursor(Qt::ArrowCursor));
@@ -137,8 +135,8 @@ void AppGui::initSettings()
 
 	m_labelLogo->setPixmap(m_vQPixmap[RES_IMG_LOGO].scaled(prm.logoSz.w, prm.logoSz.h, Qt::IgnoreAspectRatio));
 
-	m_vLineEdits[LE_IMG_FOLDER]->setText( QString::fromStdString(pp.imgRootFolder_) );
-	m_vLineEdits[LE_MP3_FOLDER]->setText(QString::fromStdString(pp.mp3RootFolder_) );
+	m_vLineEdits[LE_IMG_FOLDER]->setText( QString::fromStdString(pp.imgRootFolder) );
+	m_vLineEdits[LE_MP3_FOLDER]->setText(QString::fromStdString(pp.mp3RootFolder) );
 }
 
 void AppGui::setupMenu()
@@ -159,9 +157,13 @@ void AppGui::setupMenu()
 	m_actionHelp->setObjectName(QStringLiteral("m_actionHelp"));
 	m_actionHelp->setCheckable(true);
 
-	m_actionDecreaseSz = new QAction(m_mainWin);
-	m_actionDecreaseSz->setObjectName(QStringLiteral("m_actionDecreaseSz"));
-	m_actionDecreaseSz->setCheckable(true);
+	m_actionMinSz = new QAction(m_mainWin);
+	m_actionMinSz->setObjectName(QStringLiteral("m_actionMinSz"));
+	m_actionMinSz->setCheckable(true);
+
+	m_actionMaxSz = new QAction(m_mainWin);
+	m_actionMaxSz->setObjectName(QStringLiteral("m_actionMaxSz"));
+	m_actionMaxSz->setCheckable(true);
 
 	//menu bar
 	m_menuBar = new QMenuBar(m_mainWin);
@@ -191,18 +193,20 @@ void AppGui::setupMenu()
 	m_menuFile->addAction(m_actionExit);
 
 	m_menuHelp->addAction(m_actionHelp);
-	m_menuHelp->addAction(m_actionDecreaseSz);
+	m_menuHelp->addAction(m_actionMinSz);
+	m_menuHelp->addAction(m_actionMaxSz);
 	m_menuHelp->addSeparator();
 	m_menuHelp->addAction(m_actionAbout);
 }
 
 void AppGui::setupGuiTexts()
 {
-	m_mainWin->setWindowTitle(QApplication::translate("mainWin", "XxPlayer (v1.0)", 0));
+	m_mainWin->setWindowTitle(QApplication::translate("mainWin", "XPlayer (v1.0)", 0));
 	m_actionExit->setText(QApplication::translate("mainWin", "E&xit", 0));
 	m_actionAbout->setText(QApplication::translate("mainWin", "A&bout", 0));
 	m_actionHelp->setText(QApplication::translate("mainWin", "H&elp", 0));
-	m_actionDecreaseSz->setText(QApplication::translate("mainWin", "D&ecrease Size", 0));
+	m_actionMinSz->setText(QApplication::translate("mainWin", "Mi&nimum Size", 0));
+	m_actionMaxSz->setText(QApplication::translate("mainWin", "M&aximum Size", 0));
 
 	m_menuFile->setTitle(QApplication::translate("mainWin", "&File", 0));
 	m_menuHelp->setTitle(QApplication::translate("mainWin", "&Help", 0));
@@ -212,78 +216,83 @@ void AppGui::setupGuiTexts()
 	}
 }
 
-void AppGui::resizeLogoAndCtrlPanel()
+void AppGui::resizeLogoAndCtrlPanel(const AppGuiState state)
 {
+	const int buttonW = 110;
+
 	int x=0, y=0, h=25;
 	int b = 5;
 	int w = 100;				 //button width
+	
+	CfgGui prm = m_cfg->getGui();
 
-	const int logoGrpW = m_vGrpBoxs[GRP_BOX_LOGO]->width();
-	const int logoGrpH = m_vGrpBoxs[GRP_BOX_LOGO]->height();
 	const int ctrlGrpW = m_vGrpBoxs[GRP_BOX_CTRL]->width();
-
-	const int lineEditW = ctrlGrpW - 3*w - 4*b;	//line edit width
+	const int ctrlGrpH = m_vGrpBoxs[GRP_BOX_CTRL]->height();
+	const int lineEditW = ctrlGrpW - prm.logoSz.w - 2*w - 6*b-20;	//line edit width
 
 	//bottom left -- logo
-	m_labelLogo->setGeometry(x+b, y+b, logoGrpW-2*b, logoGrpH-2*b);
+	x = b; y = b; 
+	m_labelLogo->setGeometry(0, 0, prm.logoSz.w, prm.logoSz.h);
 
-	//bottom right
-	x = b; y = b;
+	const int x1 = b + prm.logoSz.w + b;
+
+	//image folder
+	x = x1; y = b; w = buttonW;
 	m_vPushButtons[PB_IMG_FOLDER]->setGeometry(x, y, w, h);
 	x += w+b;
 	m_vLineEdits[LE_IMG_FOLDER]->setGeometry(x, y, lineEditW, h);
 	
-	x = b;
-	y += 2*h;
+	//mp3 folder
+	x = x1;  y += h;
 	m_vPushButtons[PB_MP3_FOLDER]->setGeometry(x, y, w, h);
 	x += w+b;
 	m_vLineEdits[LE_MP3_FOLDER]->setGeometry(x, y, lineEditW, h);
 	
 	//combBox
-	x = lineEditW+w+2*b;
-	y = b;
+	const int x2 = x1 +  b + buttonW + b + lineEditW + b;
+	x = x2; y = b;
 	m_comboBoxPlaySpeed->setGeometry(x, y, w, h);
 
 	//start/exit button
-	y += h + h/4;
+	y += h;
 	m_vPushButtons[PB_START_EXIT]->setGeometry(x, y, w, h);
-
-	//enlarg button
-	y += h + h/4;
-	m_vPushButtons[PB_MAX_DISPLAY]->setGeometry(x, y, w, h);
 }
 
 //need to update <m_lv> before calling this function
-void AppGui::resizeGuiWin()
+void AppGui::resizeGuiWin( const AppGuiState state )
 {
 	CfgGui prm = m_cfg->getGui();
-	const ImgSize szCW =  prm.maxGuiWinSz;
-	const ImgSize szImg = prm.getDispImgSz();
+
+	ImgSize szGui;		//sz of the whole gui
+	ImgSize szImg;		//sz of dsp img
+	ImgSize ctrlGrpSz;		//sz of dsp img
+	if (APP_GUI_MIN == state) {
+		szGui = prm.minGuiWinSz;
+		szImg = prm.getMinDispImgSz();
+		ctrlGrpSz = prm.getMinCtrlGrpSz();
+	}
+	else {
+		szGui = prm.maxGuiWinSz;
+		szImg = prm.getMaxDispImgSz();
+		ctrlGrpSz = prm.getMaxCtrlGrpSz();
+	}
 
 	int b = 2;
 	int x = b, y = b;
-	int menuBarH = 21;
-
-	ImgSize szGui(szCW.w + 2 * b, szCW.h + 2 * b + menuBarH);
-	m_mainWin->setGeometry( 10, 25, szGui.w, szGui.h );
+	
+	m_mainWin->setGeometry( 0, 0, szGui.w, szGui.h );
 	m_mainWin->setMaximumSize(szGui.w, szGui.h);
+	m_mainWin->setMinimumSize(prm.minGuiWinSz.w, prm.minGuiWinSz.h);
 	m_mainWin->resize(szGui.w, szGui.h);
 
-	m_centralWidget->setGeometry(b, b, szCW.w, szCW.h);
-	m_menuBar->setGeometry(QRect(b, b, szGui.w, menuBarH));
+	m_centralWidget->setGeometry(0, 0, szImg.w, szImg.h);
+	m_menuBar->setGeometry(QRect(b, b, szGui.w, prm.menuBarH));
 
-	m_vGrpBoxs[GRP_BOX_IMG]->setGeometry(x, y, szImg.w, szImg.h);
+	m_vGrpBoxs[GRP_BOX_IMG]->setGeometry(0, 0, szImg.w, szImg.h);
 
-	b = 5;
 	x = b; 
-	y += szImg.h + b; 
-	int h = APP_MAX(prm.minCtrlGrpH, prm.logoSz.h+4);
-	int w = prm.logoSz.w + 2*b;
-	m_vGrpBoxs[GRP_BOX_LOGO]->setGeometry(x, y, w, h);
-
-	x += w; 
-	w = szImg.w - prm.logoSz.w - 2 * b;
-	m_vGrpBoxs[GRP_BOX_CTRL]->setGeometry(x, y, w, h);
+	y = m_vGrpBoxs[GRP_BOX_IMG]->height() + b;
+	m_vGrpBoxs[GRP_BOX_CTRL]->setGeometry(x, y, ctrlGrpSz.w, ctrlGrpSz.h);
 
 	m_imgLabel->setGeometry(0, 0, szImg.w, szImg.h);
 	m_imgLabel->setPixmap(m_vQPixmap[RES_IMG_INIT].scaled(szImg.w, szImg.h, Qt::IgnoreAspectRatio));

@@ -91,10 +91,10 @@ boost::property_tree::ptree CfgLog::toPropertyTree()
 	pt.put("appRootFolder", appRootFolder);
 	pt.put("logFolder", logFolder);
 	pt.put("isDumpLog", (int)isDumpLog);
-	pt.put("ishowLogInConsole", (int)ishowLogInConsole);
+	pt.put("isShowLogInConsole", (int)ishowLogInConsole);
 
 	char buf[256];
-	snprintf(buf, 256, "%d,%d,%d", vFrmFreqToLog[0], vFrmFreqToLog[1], vFrmFreqToLog[2]);
+	snprintf(buf, 256, "%d,%d", vFrmFreqToLog[0], vFrmFreqToLog[1]);
 	pt.put("frameFreqsToLog", string(buf) );
 
 	return pt;

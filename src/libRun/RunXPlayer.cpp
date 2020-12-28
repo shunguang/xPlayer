@@ -41,7 +41,7 @@ RunXPlayer::RunXPlayer(CfgPtr& cfg, QWidget* parent)
 
 	//init <DspFrm_h>
 	CfgSliderShow prm = cfg->getSliderShow();
-	m_dspFrm.reset(new DspFrm_h(prm.dspImgSz_.w, prm.dspImgSz_.h) );
+	m_dspFrm.reset(new DspFrm_h(prm.dspImgSz.w, prm.dspImgSz.h) );
 
 	//gui initialized at this point
 
@@ -88,6 +88,8 @@ void RunXPlayer::createDspThread()
 
 void RunXPlayer::startCapThread()
 {
+	showLoadFilesPage();
+
 	m_capThread->start();
 	//make sure every capture thread was initialized
 	while (1) {
@@ -117,14 +119,26 @@ void RunXPlayer::startDspThread()
 
 void RunXPlayer::quitAllThreads()
 {
+	
 	m_quitProgDlg->setProgress(20, "Quit capture threads ...");
 	m_capThread->forceQuit();
-	dumpLog("Thread: id=%d, name=%s quited!", m_capThread->m_threadId, m_capThread->m_threadName.c_str());
 
+	dumpLog("Thread: id=%d, name=%s quited!", m_capThread->m_threadId, m_capThread->m_threadName.c_str());
 
 	m_quitProgDlg->setProgress(80, "Quit didsplay threads ...");
 	m_dspThread->forceQuit();
 	dumpLog("Thread: id=%d, name=%s quited!", m_dspThread->m_threadId, m_dspThread->m_threadName.c_str());
+
+	//update and save config for next time run
+	boost::filesystem::path from("./cfg_xPlayer.xml");
+	if (boost::filesystem::exists(from)) {
+		boost::filesystem::path to("./cfg_xPlayer_old.xml");
+		boost::filesystem::copy_file(from, to, boost::filesystem::copy_option::overwrite_if_exists);
+	}
+
+	uint64_t fn = m_capThread->getFrmNum();
+	m_cfg->updateLastTimePlayedFrmNum(fn);
+	m_cfg->writeToFile("./cfg_xPlayer.xml");
 
 	m_quitProgDlg->setProgress(90, "all Quited ...");
 }
@@ -154,4 +168,18 @@ void RunXPlayer::on_comboBoxPlaySpeed_currentIndexChanged(int idx)
 
 	CfgSliderShow p2 = m_cfg->getSliderShow();
 
+}
+
+void RunXPlayer::showLoadFilesPage()
+{
+	int w = m_dspFrm->m_img.width();
+	int h = m_dspFrm->m_img.height();
+
+	cv::Mat I(h, w, CV_8UC3);
+	I.setTo(cv::Scalar(255, 0, 0));
+	cv::putText(I, "Loading files structures ...", cv::Point( w/2-100, h/2 ),
+		cv::FONT_HERSHEY_DUPLEX, 3, cv::Scalar(255, 255, 255), 2);
+
+	m_dspFrm->m_img = xPlayer::cvMatToQPixmap(I);
+	m_ui->showImg(m_dspFrm->m_img);
 }

@@ -92,12 +92,12 @@ bool CapThread::procInit()
 {
 	//get cfg 
 	CfgSliderShow cfg = m_cfg->getSliderShow();
-	m_capSz = cv::Size(cfg.capImgSz_.w, cfg.capImgSz_.h);
+	m_capSz = cv::Size(cfg.capImgSz.w, cfg.capImgSz.h);
 
 	//init currrent camera capture params
-	m_frmInterval_ms = cfg.frameInterval_ms_;
+	m_frmInterval_ms = cfg.frameInterval_ms;
 	
-	m_rgbFrm_h.reset(new RgbFrm_h(cfg.capImgSz_.w, cfg.capImgSz_.h));
+	m_rgbFrm_h.reset(new RgbFrm_h(cfg.capImgSz.w, cfg.capImgSz.h));
 	//dumpLog( "Rgb: (w=%d,h=%d)", m_rgbFrm_h->w_, m_rgbFrm_h->h_);
 
 	//get absolute filenames from <cfg.imgRoot> folder
@@ -107,12 +107,12 @@ bool CapThread::procInit()
 	vExt.push_back(".JPG");
 	vExt.push_back(".PNG");
 	vExt.push_back(".BMP");
-	listDirRecursively( cfg.imgRootFolder_.c_str(), vExt);
+	listDirRecursively( cfg.imgRootFolder.c_str(), vExt);
 
 	m_nTotFrms = m_vFilenames.size();
-	m_frmNum = 0;
+	m_frmNum = cfg.frmNumLastTimePlayed;
 	if (m_nTotFrms == 0) {
-		myExit("CapThread::procInit(): no img files in folder:", cfg.imgRootFolder_.c_str());
+		myExit("CapThread::procInit(): no img files in folder:", cfg.imgRootFolder.c_str());
 	}
 	return true;
 }
@@ -134,7 +134,7 @@ bool CapThread::loadImg( const std::string &f ) {
 		//dumpLog("CapThread::loadImg():fn=%d, f=%s, BGR: (w=%d,h=%d)", m_frmNum, f.c_str(), m_rgbFrm_h->I_.cols, m_rgbFrm_h->I_.rows);
 	}
 
-	cv::putText(m_rgbFrm_h->I_, std::to_string(m_frmNum) + "/" + std::to_string(m_nTotFrms), cv::Point(10, m_capSz.height-10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(255, 255, 255), 2);
+	cv::putText(m_rgbFrm_h->I_, std::to_string(m_frmNum) + "/" + std::to_string(m_nTotFrms), cv::Point(10, m_capSz.height- m_capSz.height/20), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(255, 255, 255), 2);
 	return true;
 }
 

@@ -78,18 +78,16 @@ namespace xPlayer {
 	enum AppGrpBox{
 		//----------do not chg order beg -----	
 		GRP_BOX_IMG = 0,
-		GRP_BOX_LOGO,    //bottom left 
 		GRP_BOX_CTRL,    //bottom right
 		GRP_BOX_CUNT,
 	};
-	static std::vector<std::string> g_vGrpBoxName = {"imgWin", "logo", "ctrl" };
+	static std::vector<std::string> g_vGrpBoxName = {"imgWin", "ctrl" };
 
 	enum AppPushButton {
 		//----------do not chg order beg -----	
 		PB_START_EXIT = 0,
 		PB_IMG_FOLDER,    //bottom left 
 		PB_MP3_FOLDER,    //bottom right
-		PB_MAX_DISPLAY,
 		PB_CUNT
 	};
 	static std::vector<std::string> g_vPushButtonName = { "Start", "Image Folder", "Mp3 Folder", "MaxDsp" };
@@ -114,14 +112,17 @@ namespace xPlayer {
 		RES_IMG_CUNT
 	};
 
+	enum AppGuiState {
+		APP_GUI_MIN = 0,
+		APP_GUI_MAX
+	};
+
 	class AppGui : public QWidget
 	{
 	public:
 		AppGui();
 		void setupUi(QMainWindow *mainWin, CfgPtr &cfg);
 		void showImg( const QPixmap &x );
-
-		const QRect &getGuiRect();
 
 		void resetGui();
 
@@ -133,13 +134,30 @@ namespace xPlayer {
 			return m_startExitState;
 		}
 
+		AppGuiState getGuiState() {
+			return m_guiState;
+		}
+
+		void setGuiState( const AppGuiState s ) {
+			m_guiState = s;
+			//todo:: disable/enable menu items
+			if (s == APP_GUI_MIN) {
+				m_actionMinSz->setEnabled( false );
+				m_actionMaxSz->setEnabled( true );
+			}
+			else {
+				m_actionMinSz->setEnabled(true);
+				m_actionMaxSz->setEnabled(false);
+			}
+		}
+
 	private:
 		void setupMenu();
 		void setupGuiTexts();
 		void initSettings();
 		void setupGroupBoxs();
-		void resizeGuiWin();
-		void resizeLogoAndCtrlPanel();
+		void resizeGuiWin(const AppGuiState state );
+		void resizeLogoAndCtrlPanel(const AppGuiState state);
 
 	public:
 		//main window and menu bar
@@ -150,7 +168,8 @@ namespace xPlayer {
 		QMenu		*m_menuHelp;
 		QAction		*m_actionExit;
 		QAction		*m_actionHelp;
-		QAction		*m_actionDecreaseSz;
+		QAction		*m_actionMinSz;
+		QAction		*m_actionMaxSz;
 		QAction		*m_actionAbout;
 			
 		//app widgets		
@@ -163,10 +182,11 @@ namespace xPlayer {
 		QComboBox   *m_comboBoxPlaySpeed;
 		QPushButton *m_vPushButtons[PB_CUNT];
 		QLineEdit	*m_vLineEdits[LE_CUNT];
+
 	private:
 		CfgPtr			m_cfg;				//shared data pointer
-		QRect			m_rectMainWin;
 		char			m_startExitState;
+		AppGuiState		m_guiState;
 		QRect			m_vRectGrpBox[GRP_BOX_CUNT];
 		QPixmap         m_vQPixmap[RES_IMG_CUNT];
 	};

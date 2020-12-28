@@ -69,6 +69,7 @@ namespace xPlayer {
 
 	protected:
 		virtual void startCapThread();
+		void showLoadFilesPage();
 
 		void startDspThread();
 

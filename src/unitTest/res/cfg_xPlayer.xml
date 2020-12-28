@@ -13,8 +13,11 @@
   
   <gui>
     <minGuiWinW>720</minGuiWinW>
+    <minGuiWinH>408</minGuiWinH>
     <maxGuiWinW>1920</maxGuiWinW>
     <maxGuiWinH>1080</maxGuiWinH>
+    <logoSzW>60</logoSzW>
+    <logoSzH>60</logoSzH>
   </gui>
 
   <!--dump and log -->

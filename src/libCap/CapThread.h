@@ -45,6 +45,15 @@ namespace xPlayer {
 			m_frmInterval_ms = dt_ms;
 		}
 
+		uint64_t getFrmNum() {
+			uint64_t ret;
+			{
+				boost::mutex::scoped_lock lock(m_mutexLocal);
+				ret = m_frmNum;
+			}
+			return ret;
+		}
+
 	protected:
 		//set <isEmitSignal> as false when doing single thread none GUI test
 		virtual void procNextTask();

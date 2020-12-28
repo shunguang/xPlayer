@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\libCfg\Cfg.cpp" />
     <ClCompile Include="..\..\libCfg\CfgBase.cpp" />
-    <ClCompile Include="..\..\libCfg\CfgLocalView.cpp" />
+    <ClCompile Include="..\..\libCfg\CfgGui.cpp" />
     <ClCompile Include="..\..\libCfg\CfgLog.cpp" />
     <ClCompile Include="..\..\libCfg\CfgSliderShow.cpp" />
   </ItemGroup>
@@ -29,7 +29,7 @@
     <ClInclude Include="..\..\libCfg\Cfg.h" />
     <ClInclude Include="..\..\libCfg\CfgBase.h" />
     <ClInclude Include="..\..\libCfg\CfgDefs.h" />
-    <ClInclude Include="..\..\libCfg\CfgLocalView.h" />
+    <ClInclude Include="..\..\libCfg\CfgGui.h" />
     <ClInclude Include="..\..\libCfg\CfgLog.h" />
     <ClInclude Include="..\..\libCfg\CfgSliderShow.h" />
   </ItemGroup>

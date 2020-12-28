@@ -66,13 +66,13 @@ RunGui::RunGui(CfgPtr& cfg, QWidget* parent)
 	//Menu item actions
 	QObject::connect(m_ui->m_actionExit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()), MY_QT_CONN);
 	QObject::connect(m_ui->m_actionAbout, SIGNAL(triggered()), this, SLOT(on_actionAbout_triggered()), MY_QT_CONN);
-	QObject::connect(m_ui->m_actionDecreaseSz, SIGNAL(triggered()), this, SLOT(on_actionDecreaseDispImgSz_triggered()), MY_QT_CONN);
+	QObject::connect(m_ui->m_actionMinSz, SIGNAL(triggered()), this, SLOT(on_actionMinImgSz_triggered()), MY_QT_CONN);
+	QObject::connect(m_ui->m_actionMaxSz, SIGNAL(triggered()), this, SLOT(on_actionMaxImgSz_triggered()), MY_QT_CONN);
 	QObject::connect(m_ui->m_actionHelp, SIGNAL(triggered()), this, SLOT(on_actionHelp_triggered()), MY_QT_CONN);
 	
 	QObject::connect(m_ui->m_vPushButtons[PB_START_EXIT], SIGNAL(clicked()), this, SLOT(on_pushButton_startExit_clicked()), MY_QT_CONN);
 	QObject::connect(m_ui->m_vPushButtons[PB_IMG_FOLDER], SIGNAL(clicked()), this, SLOT(on_pushButton_imgFolder_clicked()), MY_QT_CONN);
 	QObject::connect(m_ui->m_vPushButtons[PB_MP3_FOLDER], SIGNAL(clicked()), this, SLOT(on_pushButton_mp3Folder_clicked()), MY_QT_CONN);
-	QObject::connect(m_ui->m_vPushButtons[PB_MAX_DISPLAY], SIGNAL(clicked()), this, SLOT(on_pushButton_maxDisp_clicked()), MY_QT_CONN);
 
 	QObject::connect(m_ui->m_vLineEdits[LE_IMG_FOLDER], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_imgFolder_edited(const QString &)), MY_QT_CONN);
 	QObject::connect(m_ui->m_vLineEdits[LE_MP3_FOLDER], SIGNAL(textEdited(const QString &)), this, SLOT(on_lineEdit_mp3Folder_edited(const QString &)), MY_QT_CONN);
@@ -94,12 +94,10 @@ void RunGui::on_actionHelp_triggered()
 {
 	std::vector<std::string> v;
 
-	v.push_back("=== Auto Clip Cut ===");
-	v.push_back("line1");
-	v.push_back("L2 ...");
-	v.push_back("L3 ...");
-	v.push_back("L4 ...");
-	v.push_back("L5 ...");
+	v.push_back("=== xPlayer ===");
+	v.push_back("  A frame work to play image/videos");
+	v.push_back("with AI and internet searching ability.");
+	v.push_back("           2020/12/28");
 
 	std::string s = "\n";
 	for (int i = 0; i < v.size(); ++i) {
@@ -111,7 +109,7 @@ void RunGui::on_actionHelp_triggered()
 }
 void RunGui::on_actionAbout_triggered()
 {
-	QMessageBox::information(this, POPUP_MSG_WIN_TITLE, " xPlayer\n          Shunguang Wu 2020.         ");
+	QMessageBox::information(this, POPUP_MSG_WIN_TITLE, " xPlayer\n          Shunguang.Wu@gmail.com 2020.         ");
 }
 
 
@@ -155,8 +153,16 @@ void RunGui::on_actionExit_triggered()
 	closeQuitDlg();
 }
 
-void RunGui::on_actionDecreaseDispImgSz_triggered()
+void RunGui::on_actionMinImgSz_triggered()
 {
+	m_ui->setGuiState(APP_GUI_MIN);
+	m_ui->resetGui();
+}
+
+void RunGui::on_actionMaxImgSz_triggered()
+{
+	m_ui->setGuiState(APP_GUI_MAX);
+	m_ui->resetGui();
 }
 
 //Control box buttons
@@ -178,7 +184,7 @@ void RunGui::on_pushButton_imgFolder_clicked()
 {
 	CfgSliderShow prm = m_cfg->getSliderShow();
 
-	QString initFolder = QString::fromStdString( prm.imgRootFolder_ );
+	QString initFolder = QString::fromStdString( prm.imgRootFolder );
 	QString dir = QFileDialog::getExistingDirectory(this, tr("Open Image Folder"), initFolder,
 		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
@@ -191,18 +197,13 @@ void RunGui::on_pushButton_mp3Folder_clicked()
 {
 	CfgSliderShow prm = m_cfg->getSliderShow();
 
-	QString initFolder = QString::fromStdString(prm.mp3RootFolder_);
+	QString initFolder = QString::fromStdString(prm.mp3RootFolder);
 	QString dir = QFileDialog::getExistingDirectory(this, tr("Open Mp3 Folder"), initFolder,
 		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
 	m_ui->m_vLineEdits[LE_MP3_FOLDER]->setText(dir);
 
 	on_lineEdit_mp3Folder_edited(dir);
-}
-
-void RunGui::on_pushButton_maxDisp_clicked()
-{
-	//	m_cfg->updateCamName(3, s.toStdString());
 }
 
 void RunGui::on_pushButton_startExit_clicked()

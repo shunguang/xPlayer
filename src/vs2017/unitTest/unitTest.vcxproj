@@ -139,6 +139,7 @@
       <PreprocessorDefinitions>_WINDOWS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile />
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
