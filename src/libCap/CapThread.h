@@ -60,6 +60,7 @@ namespace xPlayer {
 		virtual bool procInit();
 		bool loadImg(const std::string &f);
 		void listDirRecursively(const char* rootDir, const std::vector<std::string> &vExt);
+		void resizeKeepAspectRatio(cv::Mat &dst, const cv::Mat &src, const cv::Scalar &bgcolor);
 
 	protected:
 		uint64_t		m_frmNum;
