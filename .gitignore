@@ -42,11 +42,16 @@
 moc_*.cpp
 qrc_*.cpp
 
+build-vs2019-x64/
 build-vs2017-x64/
 ref/
 x64/
 data/
 GeneratedFiles/
+.vs/
+Debug/
+Release/
+
 
 
 

@@ -41,7 +41,7 @@ namespace xPlayer {
 		virtual void fromPropertyTree(const boost::property_tree::ptree &pt);
 
 
-		std::string  CfgSliderShow::getRecFolder() const;
+		std::string  getRecFolder() const;
 		virtual std::string toString();
 
 	public:
